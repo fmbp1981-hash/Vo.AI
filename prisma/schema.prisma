@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+  // For production, use PostgreSQL:
+  // provider = "postgresql"
+  // url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  password     String?   // For credentials auth
+  role         String    @default("consultant") // admin, consultant, manager
+  avatar       String?
+  isActive     Boolean   @default(true)
+  phoneNumber  String?   // WhatsApp number for notifications
+  notifyOnHandoff Boolean @default(true) // Receive handoff notifications
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  leads         Lead[]
+  conversations Conversation[]
+  itineraries   Itinerary[]
+  proposals     Proposal[]
+  tasks         Task[]
+  notifications Notification[]
+}
+
+model Lead {
+  id                   String    @id @default(cuid())
+  userId               String?   // user_id
+  nome                 String    // Nome
+  status               String    @default("Novo Lead") // Status - corresponde ao estágio no pipeline
+  telefone             String?   // Telefone
+  telefoneNormalizado   String?   // Telefone_Normalizado
+  dataNascimento       String?   // Data_Nascimento
+  email                String?   // Email
+  canal                String?   // Canal
+  destino              String?   // Destino
+  periodo              String?   // Período
+  dataPartida          DateTime? // Data de Partida
+  dataRetorno          DateTime? // Data de Retorno
+  orcamento            String?   // Orçamento
+  pessoas              String?   // Pessoas
+  ultimaMensagem       String?   // Ultima Mensagem
+  dataUltimaMensagem   DateTime? // Data Ultima Mensagem
+  statusEnvio          String?   // Status Envio
+  processado           Boolean   @default(false) // Processado
+  motivoCancelamento   String?   // Motivo_Cancelamento
+  qualificado          Boolean   @default(false) // Qualificado
+  recorrente           Boolean   @default(false) // Recorrente
+  estagio              String    @default("Novo Lead") // Estágio - mesmo campo que status para o pipeline
+  updatedAt            DateTime  @updatedAt
+  dataFechamento       DateTime? // Data_Fechamento
+  created              DateTime  @default(now()) // Created
+  dataProcessamento    DateTime? // Data do Processamento
+  observacoes          String?   // Observações
+  
+  // Additional fields for the system
+  score                Int       @default(0) // Lead score (0-100)
+  source               String?   // Source channel
+  tags                 String?   // JSON array for tags
+  notes                String?   // Additional notes
+  assignedTo           String?   // Assigned consultant
+  assignedAt           DateTime?
+  lastContactAt        DateTime?
+  
+  // Follow-up tracking fields
+  tipoViagem           String?   @default("nacional") // nacional, internacional
+  followUp2hEnviado    Boolean   @default(false)
+  followUp4hEnviado    Boolean   @default(false)
+  followUp1dEnviado    Boolean   @default(false)
+  followUp2dEnviado    Boolean   @default(false)
+  followUp30dEnviado   Boolean   @default(false)
+  followUp45dEnviado   Boolean   @default(false)
+  lembreteViagemEnviado Boolean  @default(false)
+  lembrete7dEnviado    Boolean   @default(false)
+  lembrete1dEnviado    Boolean   @default(false)
+  lembreteDiaEnviado   Boolean   @default(false)
+  feedbackEnviado      Boolean   @default(false)
+  confirmacaoEnviada   Boolean   @default(false)
+  
+  // Relations
+  assignedUser         User?     @relation(fields: [assignedTo], references: [id])
+  conversations        Conversation[]
+  itineraries          Itinerary[]
+  proposals            Proposal[]
+  tasks                Task[]
+  followUps            FollowUp[]
+  
+  @@map("leads")
+}
+
+model Conversation {
+  id              String   @id @default(cuid())
+  leadId          String
+  userId          String?
+  channel         String   // whatsapp, webchat, instagram, email
+  messages        String   // JSON array of messages
+  status          String   @default("active") // active, waiting_handoff, human_attending, ai_standby, closed
+  handoffMode     String   @default("ai") // ai, human, standby
+  handoffReason   String?  // Reason for handoff
+  handoffRequestedAt DateTime?
+  handoffAcceptedAt  DateTime?
+  consultantNotified Boolean @default(false)
+  lastAiMessageAt    DateTime?
+  lastHumanMessageAt DateTime?
+  assignedAt      DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  lead       Lead     @relation(fields: [leadId], references: [id])
+  user       User?    @relation(fields: [userId], references: [id])
+  
+  @@map("conversations")
+  @@index([status])
+  @@index([handoffMode])
+}
+
+model Itinerary {
+  id          String   @id @default(cuid())
+  leadId      String
+  userId      String
+  title       String
+  destination String
+  startDate   DateTime
+  endDate     DateTime
+  budget      String?
+  travelers   String?
+  tripType    String?
+  preferences String?
+  content     String   // JSON with full itinerary
+  totalCost   Float?
+  status      String   @default("draft") // draft, sent, approved, rejected
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("itineraries")
+}
+
+model Proposal {
+  id          String   @id @default(cuid())
+  leadId      String
+  userId      String
+  title       String
+  content     String   // JSON with proposal details
+  pdfUrl      String?
+  totalValue  Float?
+  status      String   @default("draft") // draft, sent, viewed, signed, rejected
+  sentAt      DateTime?
+  viewedAt    DateTime?
+  signedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("proposals")
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  leadId      String
+  userId      String
+  type        String   // follow_up, call, meeting, proposal, email
+  title       String
+  description String?
+  priority    String   @default("medium") // low, medium, high, urgent
+  status      String   @default("pending") // pending, completed, cancelled, overdue
+  dueDate     DateTime
+  completedAt DateTime?
+  reminderAt  DateTime?
+  remindedAt  DateTime?
+  autoCreated Boolean  @default(false) // Created by automation
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("tasks")
+}
+
+model Automation {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  trigger     String   // lead_created, stage_changed, no_contact_3days, proposal_sent, etc
+  conditions  String   // JSON with conditions
+  actions     String   // JSON with actions to perform
+  isActive    Boolean  @default(true)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("automations")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // task, lead, system, automation
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  
+  @@map("notifications")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // login, logout, create_lead, update_lead, send_proposal, etc.
+  description String
+  metadata    String?  // JSON with additional data
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@map("activities")
+}
+
+model FollowUp {
+  id          String   @id @default(cuid())
+  leadId      String
+  type        String   // no_response_2h, no_response_4h, no_response_1d, no_response_2d, inactivity_30d, inactivity_45d, reminder_7d, reminder_1d, reminder_day, feedback_2d, confirmation
+  message     String   // Message content
+  channel     String   // whatsapp, email, both
+  status      String   @default("pending") // pending, sent, failed, cancelled
+  scheduledFor DateTime
+  sentAt      DateTime?
+  errorMessage String?
+  metadata    String?  // JSON with additional data
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@map("follow_ups")
+  @@index([leadId])
+  @@index([scheduledFor])
+  @@index([status])
+}

@@ -1,0 +1,13 @@
+{
+    "data": {
+        "key": {
+            "remoteJid": "5511999999999@s.whatsapp.net",
+            "fromMe": false,
+            "id": "test-message-id-001"
+        },
+        "messageType": "conversation",
+        "message": {
+            "conversation": "Olá! Quero viajar para Paris em dezembro com minha família."
+        }
+    }
+}

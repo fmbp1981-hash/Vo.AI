@@ -1,0 +1,218 @@
+═══════════════════════════════════════════════════════════════
+  🚀 COMO SUBIR O VO.AI NO GITHUB - PASSO A PASSO SIMPLES
+═══════════════════════════════════════════════════════════════
+
+
+📋 PRÉ-REQUISITOS:
+───────────────────────────────────────────────────────────────
+  ✅ Git instalado (https://git-scm.com/downloads)
+  ✅ Conta no GitHub (https://github.com)
+  ✅ Terminal/CMD/PowerShell
+
+
+🚀 MÉTODO RÁPIDO (5 MINUTOS):
+───────────────────────────────────────────────────────────────
+
+1️⃣ ABRIR TERMINAL NO PROJETO
+   cd C:\Users\Dell\Downloads\Vo.AI
+
+
+2️⃣ INICIALIZAR GIT (se não foi ainda)
+   git init
+
+
+3️⃣ ADICIONAR TODOS OS ARQUIVOS
+   git add .
+
+
+4️⃣ FAZER PRIMEIRO COMMIT
+   git commit -m "feat: MVP 80% - Sistema CRM + IA para agências de viagens"
+
+
+5️⃣ CRIAR REPOSITÓRIO NO GITHUB
+   • Acesse: https://github.com/new
+   • Nome: vo-ai
+   • Descrição: CRM + IA para Agências de Viagens
+   • Escolha: Private (recomendado)
+   • NÃO marque: README, .gitignore, License
+   • Clique: Create repository
+
+
+6️⃣ CONECTAR AO GITHUB (copie os comandos que aparecem)
+   git remote add origin https://github.com/SEU-USUARIO/vo-ai.git
+   git branch -M main
+   git push -u origin main
+
+
+✅ PRONTO! Projeto no GitHub!
+
+
+═══════════════════════════════════════════════════════════════
+
+
+🔐 SEGURANÇA - VERIFICAR ANTES:
+───────────────────────────────────────────────────────────────
+
+Certifique-se que estes arquivos NÃO serão enviados:
+
+❌ .env                  (secrets)
+❌ dev.db                (banco local)
+❌ node_modules/         (dependências)
+❌ .next/                (build)
+
+✅ Eles já estão no .gitignore!
+
+Para ter certeza, execute:
+   git status
+
+Se aparecer .env na lista: git reset .env
+
+
+═══════════════════════════════════════════════════════════════
+
+
+📦 O QUE SERÁ ENVIADO:
+───────────────────────────────────────────────────────────────
+
+✅ src/                  (código fonte)
+✅ prisma/               (schema + seed)
+✅ public/               (assets)
+✅ README.md             (documentação)
+✅ LICENSE               (licença)
+✅ CONTRIBUTING.md       (guia)
+✅ package.json          (dependências)
+✅ tsconfig.json         (config)
+✅ .env.example          (template SEM secrets)
+✅ [20+ arquivos .md]    (documentação completa)
+
+
+═══════════════════════════════════════════════════════════════
+
+
+🎯 DEPOIS DE SUBIR:
+───────────────────────────────────────────────────────────────
+
+1. Adicionar descrição no GitHub:
+   Settings → About → Description
+   
+2. Adicionar topics:
+   nextjs, typescript, crm, ai, chatbot, travel, saas
+   
+3. Proteger branch main:
+   Settings → Branches → Add rule
+   
+4. Adicionar colaboradores (se private):
+   Settings → Collaborators → Add people
+
+
+═══════════════════════════════════════════════════════════════
+
+
+🔄 FAZER MUDANÇAS DEPOIS:
+───────────────────────────────────────────────────────────────
+
+1. Fazer alterações no código
+
+2. git add .
+
+3. git commit -m "tipo: descrição"
+   Tipos: feat, fix, docs, style, refactor, test
+   
+4. git push
+
+
+═══════════════════════════════────════────════════════════════
+
+
+🌿 TRABALHAR COM BRANCHES:
+───────────────────────────────────────────────────────────────
+
+Criar branch para nova feature:
+   git checkout -b feature/socket-io
+   
+Fazer commits:
+   git commit -m "feat: implementa Socket.io"
+   
+Push da branch:
+   git push origin feature/socket-io
+   
+Voltar para main:
+   git checkout main
+
+
+═══════════════════════════════════════════════════════════════
+
+
+❓ PROBLEMAS COMUNS:
+───────────────────────────────────────────────────────────────
+
+ERRO: "git not found"
+→ Instale Git: https://git-scm.com/downloads
+
+ERRO: "remote already exists"
+→ git remote remove origin
+→ Depois adicione novamente
+
+ERRO: "permission denied"
+→ Configure SSH ou use HTTPS com token
+
+ERRO: ".env foi commitado"
+→ git rm --cached .env
+→ git commit -m "fix: remove .env"
+
+
+═══════════════════════════════════════════════════════════════
+
+
+📚 DOCUMENTAÇÃO COMPLETA:
+───────────────────────────────────────────────────────────────
+
+Para guia detalhado, consulte:
+   GUIA_GITHUB.md
+
+
+═══════════════════════════════════════════════════════════════
+
+
+✅ CHECKLIST FINAL:
+───────────────────────────────────────────────────────────────
+
+Antes de tornar público:
+
+  □ .env não está sendo commitado
+  □ Secrets foram removidos
+  □ README está completo
+  □ LICENSE está adequado
+  □ .gitignore está correto
+  □ Testes passam
+  □ Build funciona
+
+
+═══════════════════════════════════════════════════════════════
+
+
+🎉 DICA EXTRA:
+───────────────────────────────────────────────────────────────
+
+Use GitHub Desktop para interface visual:
+https://desktop.github.com
+
+Muito mais fácil que linha de comando!
+
+
+═══════════════════════════════════════════════════════════════
+
+
+📞 AJUDA:
+───────────────────────────────────────────────────────────────
+
+  • Documentação Git: https://git-scm.com/doc
+  • GitHub Docs: https://docs.github.com
+  • Guia interno: GUIA_GITHUB.md
+
+
+═══════════════════════════════════════════════════════════════
+
+                  BOA SORTE! 🚀
+
+═══════════════════════════════════════════════════════════════
