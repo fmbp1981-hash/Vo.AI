@@ -5,43 +5,68 @@ import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 const handler = NextAuth({
-  adapter: PrismaAdapter(db, {
-    try {
-      // Find user by email
-      const user = await db.user.findUnique({
-        where: { email: credentials.email }
-      })
+  adapter: PrismaAdapter(db),
+  providers: [
+    CredentialsProvider({
+      name: 'credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Invalid credentials')
+        }
 
-          if(!user) {
-        return null
+        const user = await db.user.findUnique({
+          where: {
+            email: credentials.email
+          }
+        })
+
+        if (!user || !user.password) {
+          throw new Error('Invalid credentials')
+        }
+
+        const isCorrectPassword = await bcrypt.compare(
+          credentials.password,
+          user.password
+        )
+
+        if (!isCorrectPassword) {
+          throw new Error('Invalid credentials')
+        }
+
+        return user
       }
     })
   ],
-session: {
-  strategy: 'jwt',
+  session: {
+    strategy: 'jwt'
   },
-callbacks: {
+  callbacks: {
     async jwt({ token, user }) {
-    if (user) {
-      token.role = user.role
-      token.id = user.id
-    }
-    return token
-  },
+      if (user) {
+        token.role = user.role
+        token.id = user.id
+      }
+      return token
+    },
     async session({ session, token }) {
-    if (token) {
-      session.user.id = token.id as string
-      session.user.role = token.role as string
+      if (token) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+      }
+      return session
     }
-    return session
-  }
-},
-pages: {
-  signIn: '/auth/login',
-    signUp: '/auth/register',
-      error: '/auth/error',
   },
-secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/auth/login',
+    signUp: '/auth/register',
+    error: '/auth/error'
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
 })
 
 export { handler as GET, handler as POST }

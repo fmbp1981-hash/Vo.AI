@@ -167,48 +167,47 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
       description: 'Um de nossos consultores entrará em contato em breve.',
     })
     setHandoverAlert({ show: false })
-    {
-      messages.length === 0 && (
-        <div className="text-center py-12">
-          <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700">
-            Olá! Sou a Vo.AI 👋
-          </h3>
-          <p className="text-gray-500 mt-2">
-            Como posso ajudar você a planejar sua próxima viagem?
-          </p>
-        </div>
-      )
+  }
+
+  return (
+    messages.length === 0 && (
+      <div className="text-center py-12">
+        <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-700">
+          Olá! Sou a Vo.AI 👋
+        </h3>
+        <p className="text-gray-500 mt-2">
+          Como posso ajudar você a planejar sua próxima viagem?
+        </p>
+      </div>
+    )
     }
 
-    {
-      messages.map((message, index) => (
-        <div
-          key={index}
-          className={`flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''
-            }`}
-        >
-              }`}
-          >
-          <div
-            className={`rounded-lg px-4 py-2 ${message.role === 'user'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-900'
-              }`}
-          >
-            <p className="text-sm whitespace-pre-wrap">
-              {message.content}
-            </p>
-          </div>
-          <span className="text-xs text-gray-500 mt-1">
-            {new Date(message.timestamp).toLocaleTimeString('pt-BR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-        </div>
-        </div >
-      ))
+{
+  messages.map((message, index) => (
+    <div
+      key={index}
+      className={`flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''
+        }`}
+    >
+      <div
+        className={`rounded-lg px-4 py-2 ${message.role === 'user'
+          ? 'bg-blue-600 text-white'
+          : 'bg-gray-100 text-gray-900'
+          }`}
+      >
+        <p className="text-sm whitespace-pre-wrap">
+          {message.content}
+        </p>
+      </div>
+      <span className="text-xs text-gray-500 mt-1">
+        {new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </span>
+    </div>
+  ))
 }
 
 {
@@ -232,9 +231,9 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
 }
 
 <div ref={messagesEndRef} />
-          </div >
-        </CardContent >
-      </Card >
+        </div >
+      </CardContent >
+    </Card >
 
   {/* Input Area */ }
   < Card className = "mt-4" >
@@ -264,7 +263,7 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
         Pressione Enter para enviar • Shift+Enter para nova linha
       </p>
     </CardContent>
-      </Card >
-    </div >
+    </Card >
+  </div >
   )
 }
