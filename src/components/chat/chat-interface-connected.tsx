@@ -170,100 +170,109 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
   }
 
   return (
-    messages.length === 0 && (
-      <div className="text-center py-12">
-        <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-700">
-          Olá! Sou a Vo.AI 👋
-        </h3>
-        <p className="text-gray-500 mt-2">
-          Como posso ajudar você a planejar sua próxima viagem?
-        </p>
-      </div>
-    )
-    }
-
-{
-  messages.map((message, index) => (
-    <div
-      key={index}
-      className={`flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''
-        }`}
-    >
-      <div
-        className={`rounded-lg px-4 py-2 ${message.role === 'user'
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-100 text-gray-900'
-          }`}
-      >
-        <p className="text-sm whitespace-pre-wrap">
-          {message.content}
-        </p>
-      </div>
-      <span className="text-xs text-gray-500 mt-1">
-        {new Date(message.timestamp).toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
-      </span>
-    </div>
-  ))
-}
-
-{
-  loading && (
-    <div className="flex items-start gap-3">
-      <Avatar className="w-8 h-8">
-        <AvatarFallback className="bg-green-100 text-green-600">
-          <Bot className="w-4 h-4" />
-        </AvatarFallback>
-      </Avatar>
-      <div className="bg-gray-100 rounded-lg px-4 py-3">
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
-          <span className="text-sm text-gray-500">
-            Vo.AI está digitando...
-          </span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-<div ref={messagesEndRef} />
-        </div >
-      </CardContent >
-    </Card >
-
-  {/* Input Area */ }
-  < Card className = "mt-4" >
-    <CardContent className="p-4">
-      <div className="flex items-center gap-2">
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder="Digite sua mensagem..."
-          disabled={loading}
-          className="flex-1"
+    <div className="space-y-4">
+      {/* Handover Alert */}
+      {handoverAlert.show && (
+        <HandoverNotification
+          reason={handoverAlert.reason}
+          onContactConsultant={handleContactConsultant}
+          onDismiss={() => setHandoverAlert({ show: false })}
         />
-        <Button
-          onClick={handleSendMessage}
-          disabled={!input.trim() || loading}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Send className="w-4 h-4" />
-          )}
-        </Button>
-      </div>
-      <p className="text-xs text-gray-500 mt-2">
-        Pressione Enter para enviar • Shift+Enter para nova linha
-      </p>
-    </CardContent>
-    </Card >
-  </div >
+      )}
+
+      {/* Messages Area */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto">
+            {messages.length === 0 && (
+              <div className="text-center py-12">
+                <Bot className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Olá! Sou a Vo.AI 👋
+                </h3>
+                <p className="text-gray-500 mt-2">
+                  Como posso ajudar você a planejar sua próxima viagem?
+                </p>
+              </div>
+            )}
+
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''
+                  }`}
+              >
+                <div
+                  className={`rounded-lg px-4 py-2 ${message.role === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-900'
+                    }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">
+                    {message.content}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500 mt-1">
+                  {new Date(message.timestamp).toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </span>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="flex items-start gap-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-green-100 text-green-600">
+                    <Bot className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="bg-gray-100 rounded-lg px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                    <span className="text-sm text-gray-500">
+                      Vo.AI está digitando...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div >
+        </CardContent >
+      </Card >
+
+      {/* Input Area */}
+      < Card className="mt-4" >
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Digite sua mensagem..."
+              disabled={loading}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!input.trim() || loading}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            Pressione Enter para enviar • Shift+Enter para nova linha
+          </p>
+        </CardContent>
+      </Card >
+    </div >
   )
 }
