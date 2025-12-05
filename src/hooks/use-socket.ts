@@ -61,9 +61,9 @@ export const useSocket = (userId?: string, role?: string) => {
         console.log('✅ Socket.io connected')
         setIsConnected(true)
 
-        // Authenticate if credentials provided
+        // Join rooms if credentials provided
         if (userId && role) {
-          socket.emit('authenticate', { userId, role })
+          socket.emit('join', { userId, role })
         }
       })
 
@@ -94,7 +94,7 @@ export const useSocket = (userId?: string, role?: string) => {
       socket.on('notification:new', (notification: NotificationData) => {
         console.log('🔔 New notification:', notification)
         setNotifications((prev) => [notification, ...prev])
-        
+
         // Show browser notification if permitted
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification(notification.title, {
@@ -214,13 +214,13 @@ export const useSocket = (userId?: string, role?: string) => {
     // Connection state
     isConnected,
     socket: socketRef.current,
-    
+
     // State
     notifications,
     unreadCount: notifications.filter(n => !n.read).length,
     typingUsers: Array.from(typingUsers),
     onlineUsers: Array.from(onlineUsers),
-    
+
     // Methods
     joinLeadRoom,
     leaveLeadRoom,
@@ -233,7 +233,7 @@ export const useSocket = (userId?: string, role?: string) => {
     updatePresence,
     markNotificationRead,
     clearNotifications,
-    
+
     // Event listeners
     on,
     off,

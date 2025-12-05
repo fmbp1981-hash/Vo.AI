@@ -3,7 +3,7 @@
 import React from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
-import { CRMPipeline } from '@/components/crm/pipeline'
+import { CRMPipeline } from '@/components/crm/pipeline-v2'
 
 export default function CRMPage() {
   return (

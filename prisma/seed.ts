@@ -6,13 +6,32 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // Create admin user
+  // 1. Create Default Tenant
+  const tenant = await prisma.tenant.upsert({
+    where: { slug: 'agir-viagens' },
+    update: {},
+    create: {
+      name: 'Agir Viagens',
+      slug: 'agir-viagens',
+      isActive: true,
+      settings: JSON.stringify({ theme: 'light', currency: 'BRL' }),
+    },
+  })
+  console.log('✅ Tenant created:', tenant.name)
+
+  // 2. Create admin user
   const adminPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@agir.com' },
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'admin@agir.com'
+      }
+    },
     update: {},
     create: {
       email: 'admin@agir.com',
+      tenantId: tenant.id,
       name: 'Admin AGIR',
       password: adminPassword,
       role: 'admin',
@@ -22,13 +41,19 @@ async function main() {
   })
   console.log('✅ Admin user created:', admin.email)
 
-  // Create consultant user
+  // 3. Create consultant user
   const consultantPassword = await bcrypt.hash('consultor123', 10)
   const consultant = await prisma.user.upsert({
-    where: { email: 'consultor@agir.com' },
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'consultor@agir.com'
+      }
+    },
     update: {},
     create: {
       email: 'consultor@agir.com',
+      tenantId: tenant.id,
       name: 'Maria Silva',
       password: consultantPassword,
       role: 'consultant',
@@ -38,7 +63,55 @@ async function main() {
   })
   console.log('✅ Consultant user created:', consultant.email)
 
-  // Create sample leads
+  // 4. Create E2E Test Admin
+  const testAdminPassword = await bcrypt.hash('Test@123456', 10)
+  await prisma.user.upsert({
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'admin@voai.test'
+      }
+    },
+    update: {
+      password: testAdminPassword,
+      role: 'ADMIN',
+    },
+    create: {
+      email: 'admin@voai.test',
+      tenantId: tenant.id,
+      name: 'Admin User',
+      password: testAdminPassword,
+      role: 'ADMIN',
+      isActive: true,
+    },
+  })
+  console.log('✅ E2E Admin user created: admin@voai.test')
+
+  // 5. Create E2E Test Consultant
+  const testConsultantPassword = await bcrypt.hash('Test@123456', 10)
+  await prisma.user.upsert({
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: 'consultant@voai.test'
+      }
+    },
+    update: {
+      password: testConsultantPassword,
+      role: 'CONSULTANT',
+    },
+    create: {
+      email: 'consultant@voai.test',
+      tenantId: tenant.id,
+      name: 'Consultant User',
+      password: testConsultantPassword,
+      role: 'CONSULTANT',
+      isActive: true,
+    },
+  })
+  console.log('✅ E2E Consultant user created: consultant@voai.test')
+
+  // 6. Create sample leads
   const sampleLeads = [
     {
       nome: 'João Santos',
@@ -58,6 +131,7 @@ async function main() {
       qualificado: true,
       assignedTo: consultant.id,
       assignedAt: new Date(),
+      tenantId: tenant.id,
     },
     {
       nome: 'Maria Oliveira',
@@ -77,6 +151,7 @@ async function main() {
       qualificado: true,
       assignedTo: consultant.id,
       assignedAt: new Date(),
+      tenantId: tenant.id,
     },
     {
       nome: 'Carlos Pereira',
@@ -96,6 +171,7 @@ async function main() {
       qualificado: true,
       assignedTo: consultant.id,
       assignedAt: new Date(),
+      tenantId: tenant.id,
     },
     {
       nome: 'Ana Costa',
@@ -115,6 +191,7 @@ async function main() {
       qualificado: true,
       assignedTo: consultant.id,
       assignedAt: new Date(),
+      tenantId: tenant.id,
     },
     {
       nome: 'Pedro Souza',
@@ -130,6 +207,7 @@ async function main() {
       pessoas: '2 adultos',
       score: 75,
       qualificado: false,
+      tenantId: tenant.id,
     },
   ]
 
@@ -140,7 +218,7 @@ async function main() {
     console.log(`✅ Lead created: ${lead.nome} - ${lead.destino}`)
   }
 
-  // Create sample conversation
+  // 7. Create sample conversation
   const firstLead = await prisma.lead.findFirst({
     where: { nome: 'João Santos' },
   })
@@ -148,6 +226,7 @@ async function main() {
   if (firstLead) {
     await prisma.conversation.create({
       data: {
+        tenantId: tenant.id,
         leadId: firstLead.id,
         userId: consultant.id,
         channel: 'whatsapp',
@@ -179,10 +258,11 @@ async function main() {
     console.log('✅ Sample conversation created')
   }
 
-  // Create sample itinerary
+  // 8. Create sample itinerary
   if (firstLead) {
     await prisma.itinerary.create({
       data: {
+        tenantId: tenant.id,
         leadId: firstLead.id,
         userId: consultant.id,
         title: 'Roteiro Paris - 10 dias inesquecíveis',
@@ -233,10 +313,11 @@ async function main() {
     console.log('✅ Sample itinerary created')
   }
 
-  // Create sample proposal
+  // 9. Create sample proposal
   if (firstLead) {
     await prisma.proposal.create({
       data: {
+        tenantId: tenant.id,
         leadId: firstLead.id,
         userId: consultant.id,
         title: 'Proposta - Paris Romântico 10 dias',

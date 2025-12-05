@@ -3,7 +3,6 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,17 +12,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Bell,
   Search,
   Settings,
   LogOut,
   User,
   HelpCircle,
-  Moon,
-  Sun
 } from 'lucide-react'
+import { NotificationCenter } from '@/components/notifications/notification-center'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 export function Header() {
+  const { data: session } = useSession()
+
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
       {/* Search Bar */}
@@ -39,72 +40,42 @@ export function Header() {
 
       {/* Right Side Actions */}
       <div className="flex items-center gap-4">
-        {/* Notifications */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-5 h-5 text-foreground" />
-              <Badge className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs rounded-full p-0 flex items-center justify-center border-2 border-card">
-                3
-              </Badge>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <div className="flex items-start gap-3 w-full">
-                <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Novo lead qualificado</p>
-                  <p className="text-xs text-muted-foreground">Maria Santos está pronta para proposta</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Há 2 minutos</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <div className="flex items-start gap-3 w-full">
-                <div className="w-2 h-2 bg-secondary rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Proposta visualizada</p>
-                  <p className="text-xs text-muted-foreground">Carlos Silva abriu a proposta Europa 2024</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Há 15 minutos</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <div className="flex items-start gap-3 w-full">
-                <div className="w-2 h-2 bg-accent rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Follow-up necessário</p>
-                  <p className="text-xs text-muted-foreground">5 leads precisam de contato hoje</p>
-                  <p className="text-xs text-muted-foreground/70 mt-1">Há 1 hora</p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Real-time Notifications with Socket.io */}
+        {session?.user && (
+          <NotificationCenter
+            userId={session.user.id || session.user.email || 'guest'}
+            role="consultant"
+          />
+        )}
 
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-medium">JD</span>
+                <span className="text-primary-foreground text-sm font-medium">
+                  {session?.user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'US'}
+                </span>
               </div>
-              <span className="text-sm font-medium text-foreground">João Silva</span>
+              <span className="text-sm font-medium text-foreground">
+                {session?.user?.name || 'Usuário'}
+              </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="w-4 h-4 mr-2" />
-              Perfil
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="cursor-pointer">
+                <User className="w-4 h-4 mr-2" />
+                Perfil
+              </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="w-4 h-4 mr-2" />
-              Configurações
+            <DropdownMenuItem asChild>
+              <Link href="/settings/security" className="cursor-pointer">
+                <Settings className="w-4 h-4 mr-2" />
+                Configurações
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <HelpCircle className="w-4 h-4 mr-2" />

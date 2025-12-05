@@ -19,7 +19,26 @@
 
 ## ✅ Implementações Completadas HOJE
 
-### 1. ✅ Drag & Drop Funcional no CRM Kanban
+### 1. ✅ Correção do CRM e Edição de Leads
+**Tempo:** 1h
+**Arquivos:** 
+- `src/app/crm/page.tsx`
+- `src/components/crm/pipeline-v2.tsx`
+- `src/components/crm/lead-card.tsx`
+- `src/components/lead-form-dialog.tsx`
+
+**Implementado:**
+- ✅ Mudança para `pipeline-v2` (dados reais do banco)
+- ✅ Integração do `LeadFormDialog` no pipeline
+- ✅ Funcionalidade de "Editar Lead" no card
+- ✅ Refresh automático após edição/criação
+- ✅ Script de limpeza de banco (`scripts/cleanup-users.js`)
+
+**Resultado:** Botão "Atualizar" funcionando e CRM conectado ao banco de dados!
+
+---
+
+### 2. ✅ Drag & Drop Funcional no CRM Kanban
 **Tempo:** 1h  
 **Arquivo:** `src/components/crm/pipeline.tsx`  
 **Documentação:** `IMPLEMENTACAO_01_DRAG_DROP.md`

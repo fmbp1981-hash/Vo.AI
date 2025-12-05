@@ -1,51 +1,73 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-  // For production, use PostgreSQL:
-  // provider = "postgresql"
-  // url      = env("DATABASE_URL")
+}
+
+// Multi-tenancy support
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  settings  String?  // JSON for tenant-specific settings
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users         User[]
+  leads         Lead[]
+  conversations Conversation[]
+  itineraries   Itinerary[]
+  proposals     Proposal[]
+  tasks         Task[]
+  automations   Automation[]
+  
+  @@map("tenants")
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  name         String?
-  password     String?   // For credentials auth
-  role         String    @default("consultant") // admin, consultant, manager
-  avatar       String?
-  isActive     Boolean   @default(true)
-  phoneNumber  String?   // WhatsApp number for notifications
-  notifyOnHandoff Boolean @default(true) // Receive handoff notifications
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  tenantId        String
+  email           String
+  name            String?
+  password        String?   // For credentials auth
+  role            String    @default("consultant") // admin, consultant, manager
+  avatar          String?
+  isActive        Boolean   @default(true)
+  phoneNumber     String?   // WhatsApp number for notifications
+  notifyOnHandoff Boolean   @default(true) // Receive handoff notifications
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   
   // Relations
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
   leads         Lead[]
   conversations Conversation[]
   itineraries   Itinerary[]
   proposals     Proposal[]
   tasks         Task[]
   notifications Notification[]
+  
+  @@unique([tenantId, email])
+  @@map("users")
 }
 
 model Lead {
   id                   String    @id @default(cuid())
+  tenantId             String
   userId               String?   // user_id
   nome                 String    // Nome
   status               String    @default("Novo Lead") // Status - corresponde ao estágio no pipeline
   telefone             String?   // Telefone
-  telefoneNormalizado   String?   // Telefone_Normalizado
+  telefoneNormalizado  String?   // Telefone_Normalizado
   dataNascimento       String?   // Data_Nascimento
   email                String?   // Email
   canal                String?   // Canal
@@ -94,6 +116,7 @@ model Lead {
   confirmacaoEnviada   Boolean   @default(false)
   
   // Relations
+  tenant               Tenant    @relation(fields: [tenantId], references: [id])
   assignedUser         User?     @relation(fields: [assignedTo], references: [id])
   conversations        Conversation[]
   itineraries          Itinerary[]
@@ -102,37 +125,42 @@ model Lead {
   followUps            FollowUp[]
   
   @@map("leads")
+  @@index([tenantId])
 }
 
 model Conversation {
-  id              String   @id @default(cuid())
-  leadId          String
-  userId          String?
-  channel         String   // whatsapp, webchat, instagram, email
-  messages        String   // JSON array of messages
-  status          String   @default("active") // active, waiting_handoff, human_attending, ai_standby, closed
-  handoffMode     String   @default("ai") // ai, human, standby
-  handoffReason   String?  // Reason for handoff
+  id                 String   @id @default(cuid())
+  tenantId           String
+  leadId             String
+  userId             String?
+  channel            String   // whatsapp, webchat, instagram, email
+  messages           String   // JSON array of messages
+  status             String   @default("active") // active, waiting_handoff, human_attending, ai_standby, closed
+  handoffMode        String   @default("ai") // ai, human, standby
+  handoffReason      String?  // Reason for handoff
   handoffRequestedAt DateTime?
   handoffAcceptedAt  DateTime?
-  consultantNotified Boolean @default(false)
+  consultantNotified Boolean  @default(false)
   lastAiMessageAt    DateTime?
   lastHumanMessageAt DateTime?
-  assignedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  assignedAt         DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   
   // Relations
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
   lead       Lead     @relation(fields: [leadId], references: [id])
   user       User?    @relation(fields: [userId], references: [id])
   
   @@map("conversations")
+  @@index([tenantId])
   @@index([status])
   @@index([handoffMode])
 }
 
 model Itinerary {
   id          String   @id @default(cuid())
+  tenantId    String
   leadId      String
   userId      String
   title       String
@@ -150,14 +178,17 @@ model Itinerary {
   updatedAt   DateTime @updatedAt
   
   // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   lead        Lead     @relation(fields: [leadId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   
   @@map("itineraries")
+  @@index([tenantId])
 }
 
 model Proposal {
   id          String   @id @default(cuid())
+  tenantId    String
   leadId      String
   userId      String
   title       String
@@ -172,14 +203,17 @@ model Proposal {
   updatedAt   DateTime @updatedAt
   
   // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   lead        Lead     @relation(fields: [leadId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   
   @@map("proposals")
+  @@index([tenantId])
 }
 
 model Task {
   id          String   @id @default(cuid())
+  tenantId    String
   leadId      String
   userId      String
   type        String   // follow_up, call, meeting, proposal, email
@@ -196,14 +230,17 @@ model Task {
   updatedAt   DateTime @updatedAt
   
   // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
   lead        Lead     @relation(fields: [leadId], references: [id])
   user        User     @relation(fields: [userId], references: [id])
   
   @@map("tasks")
+  @@index([tenantId])
 }
 
 model Automation {
   id          String   @id @default(cuid())
+  tenantId    String
   name        String
   description String?
   trigger     String   // lead_created, stage_changed, no_contact_3days, proposal_sent, etc
@@ -214,7 +251,11 @@ model Automation {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
   @@map("automations")
+  @@index([tenantId])
 }
 
 model Notification {
@@ -248,21 +289,21 @@ model Activity {
 }
 
 model FollowUp {
-  id          String   @id @default(cuid())
-  leadId      String
-  type        String   // no_response_2h, no_response_4h, no_response_1d, no_response_2d, inactivity_30d, inactivity_45d, reminder_7d, reminder_1d, reminder_day, feedback_2d, confirmation
-  message     String   // Message content
-  channel     String   // whatsapp, email, both
-  status      String   @default("pending") // pending, sent, failed, cancelled
+  id           String   @id @default(cuid())
+  leadId       String
+  type         String   // no_response_2h, no_response_4h, no_response_1d, no_response_2d, inactivity_30d, inactivity_45d, reminder_7d, reminder_1d, reminder_day, feedback_2d, confirmation
+  message      String   // Message content
+  channel      String   // whatsapp, email, both
+  status       String   @default("pending") // pending, sent, failed, cancelled
   scheduledFor DateTime
-  sentAt      DateTime?
+  sentAt       DateTime?
   errorMessage String?
-  metadata    String?  // JSON with additional data
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  metadata     String?  // JSON with additional data
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
   // Relations
-  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
   
   @@map("follow_ups")
   @@index([leadId])
