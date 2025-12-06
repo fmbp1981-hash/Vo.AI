@@ -1,8 +1,10 @@
 import OpenAI from 'openai'
 
 // Initialize OpenAI client
+const apiKey = process.env.OPENAI_API_KEY || 'dummy_key_for_build'
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: apiKey,
 })
 
 // System prompt for AGIR Viagens assistant (adapted from Sofia's profile)

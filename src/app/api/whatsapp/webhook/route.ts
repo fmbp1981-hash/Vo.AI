@@ -187,9 +187,9 @@ export async function POST(request: NextRequest) {
             })
 
             // Emit socket event for handover
-            const io = getIO()
-            if (io) {
-                io.to(`lead:${lead.id}`).emit('chat:new_message', {
+            const ioHandover = getIO()
+            if (ioHandover) {
+                ioHandover.to(`lead:${lead.id}`).emit('chat:new_message', {
                     leadId: lead.id,
                     message: handoverMessage,
                     sender: 'ai',
@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
                     timestamp: new Date().toISOString(),
                 })
 
-                io.emit('handover:new_request', {
+                ioHandover.emit('handover:new_request', {
                     leadId: lead.id,
                     reason: handoverCheck.reason,
                     priority: 'high',
@@ -251,9 +251,9 @@ export async function POST(request: NextRequest) {
         })
 
         // Emit socket event for AI response
-        const io = getIO()
-        if (io) {
-            io.to(`lead:${lead.id}`).emit('chat:new_message', {
+        const ioAi = getIO()
+        if (ioAi) {
+            ioAi.to(`lead:${lead.id}`).emit('chat:new_message', {
                 leadId: lead.id,
                 message: aiResponse,
                 sender: 'ai',

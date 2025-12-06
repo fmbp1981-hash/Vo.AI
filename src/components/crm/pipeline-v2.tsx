@@ -210,214 +210,232 @@ export function CRMPipeline() {
     })
     return initial
   })
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  )
   const [activeId, setActiveId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-})
-  )
 
-const [isDialogOpen, setIsDialogOpen] = useState(false)
-const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [selectedLead, setSelectedLead] = useState<Lead | undefined>(undefined)
 
-const fetchLeads = async () => {
-  setLoading(true)
-  try {
-    const response = await fetch('/api/leads')
-    if (!response.ok) throw new Error('Failed to fetch leads')
+  const fetchLeads = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch('/api/leads')
+      if (!response.ok) throw new Error('Failed to fetch leads')
 
-    const result = await response.json()
-    const leads = result.data?.leads || []
+      const result = await response.json()
+      const leads = result.data?.leads || []
 
-    // Group leads by stage
-    const grouped: PipelineData = {}
-    Object.entries(stageConfig).forEach(([stage, config]) => {
-      grouped[stage] = {
-        title: config.title,
-        color: config.color,
-        leads: leads.filter((l: Lead) => l.estagio === stage)
+      // Group leads by stage
+      const grouped: PipelineData = {}
+      Object.entries(stageConfig).forEach(([stage, config]) => {
+        grouped[stage] = {
+          title: config.title,
+          color: config.color,
+          leads: leads.filter((l: Lead) => l.estagio === stage)
+        }
+      })
+
+      setPipelineData(grouped)
+    } catch (error) {
+      console.error('Error fetching leads:', error)
+      toast({
+        title: 'Erro ao carregar leads',
+        description: 'Não foi possível carregar os leads. Usando dados de exemplo.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch leads from API
+  useEffect(() => {
+    fetchLeads()
+  }, [toast])
+
+  const handleNewLead = () => {
+    setSelectedLead(undefined)
+    setIsDialogOpen(true)
+  }
+
+  const handleEditLead = (lead: Lead) => {
+    setSelectedLead(lead)
+    setIsDialogOpen(true)
+  }
+
+  const handleSuccess = () => {
+    fetchLeads()
+    setIsDialogOpen(false)
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (!over) return
+
+    const activeId = active.id as string
+
+    // Find which stage the card is being dropped into
+    let targetStage: string | null = null
+    let sourceLead: Lead | null = null
+    let sourceStage: string | null = null
+
+    // Find source lead and stage
+    Object.entries(pipelineData).forEach(([stage, data]) => {
+      const lead = data.leads.find(l => l.id === activeId)
+      if (lead) {
+        sourceLead = lead
+        sourceStage = stage
       }
     })
 
-    setPipelineData(grouped)
-  } catch (error) {
-    console.error('Error fetching leads:', error)
-    toast({
-      title: 'Erro ao carregar leads',
-      description: 'Não foi possível carregar os leads. Usando dados de exemplo.',
-      variant: 'destructive',
+    // Find target stage - check if dropping on another card or column
+    Object.entries(pipelineData).forEach(([stage, data]) => {
+      if (data.leads.some(l => l.id === over.id)) {
+        targetStage = stage
+      }
     })
-  } finally {
-    setLoading(false)
-  }
-}
 
-// Fetch leads from API
-useEffect(() => {
-  fetchLeads()
-}, [toast])
-
-const handleNewLead = () => {
-  setSelectedLead(undefined)
-  setIsDialogOpen(true)
-}
-
-const handleEditLead = (lead: Lead) => {
-  setSelectedLead(lead)
-  setIsDialogOpen(true)
-}
-
-const handleSuccess = () => {
-  fetchLeads()
-  setIsDialogOpen(false)
-}
-
-const handleDragStart = (event: DragStartEvent) => {
-  setActiveId(event.active.id as string)
-}
-
-const handleDragEnd = async (event: DragEndEvent) => {
-  const { active, over } = event
-  setActiveId(null)
-
-  if (!over) return
-
-  const activeId = active.id as string
-
-  // Find which stage the card is being dropped into
-  let targetStage: string | null = null
-  let sourceLead: Lead | null = null
-  let sourceStage: string | null = null
-
-  // Find source lead and stage
-  Object.entries(pipelineData).forEach(([stage, data]) => {
-    const lead = data.leads.find(l => l.id === activeId)
-    if (lead) {
-      sourceLead = lead
-      sourceStage = stage
+    // If not found, check if dropping on column directly
+    if (!targetStage && Object.keys(stageConfig).includes(over.id as string)) {
+      targetStage = over.id as string
     }
-  })
 
-  // Find target stage - check if dropping on another card or column
-  Object.entries(pipelineData).forEach(([stage, data]) => {
-    if (data.leads.some(l => l.id === over.id)) {
-      targetStage = stage
+    if (!sourceLead || !sourceStage || !targetStage) return
+    if (sourceStage === targetStage) return // Same column, no change
+
+    // Optimistic UI update
+    const newPipelineData = { ...pipelineData }
+
+    // Remove from source
+    newPipelineData[sourceStage] = {
+      ...newPipelineData[sourceStage],
+      leads: newPipelineData[sourceStage].leads.filter(l => l.id !== activeId)
     }
-  })
 
-  // If not found, check if dropping on column directly
-  if (!targetStage && Object.keys(stageConfig).includes(over.id as string)) {
-    targetStage = over.id as string
+    // Add to target
+    const updatedLead = { ...sourceLead, estagio: targetStage }
+    newPipelineData[targetStage] = {
+      ...newPipelineData[targetStage],
+      leads: [...newPipelineData[targetStage].leads, updatedLead]
+    }
+
+    setPipelineData(newPipelineData)
+
+    // Call API to persist
+    try {
+      const response = await fetch(`/api/leads/${activeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estagio: targetStage }),
+      })
+
+      if (!response.ok) throw new Error('Failed to update lead')
+
+      const result = await response.json()
+
+      toast({
+        title: 'Lead atualizado',
+        description: `${sourceLead.nome} movido para ${newPipelineData[targetStage].title}`,
+      })
+    } catch (error) {
+      // Revert on error
+      setPipelineData(pipelineData)
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível mover o lead. Tente novamente.',
+        variant: 'destructive',
+      })
+    }
   }
 
-  if (!sourceLead || !sourceStage || !targetStage) return
-  if (sourceStage === targetStage) return // Same column, no change
+  const activeLead = activeId
+    ? Object.values(pipelineData).flatMap(stage => stage.leads).find(l => l.id === activeId)
+    : null
 
-  // Optimistic UI update
-  const newPipelineData = { ...pipelineData }
-
-  // Remove from source
-  newPipelineData[sourceStage] = {
-    ...newPipelineData[sourceStage],
-    leads: newPipelineData[sourceStage].leads.filter(l => l.id !== activeId)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Carregando pipeline...</p>
+        </div>
+      </div>
+    )
   }
 
-  // Add to target
-  const updatedLead = { ...sourceLead, estagio: targetStage }
-  newPipelineData[targetStage] = {
-    ...newPipelineData[targetStage],
-    leads: [...newPipelineData[targetStage].leads, updatedLead]
-  }
-
-  setPipelineData(newPipelineData)
-
-  // Call API to persist
-  try {
-    const response = await fetch(`/api/leads/${activeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estagio: targetStage }),
-    })
-
-    if (!response.ok) throw new Error('Failed to update lead')
-
-    const result = await response.json()
-
-    toast({
-      title: 'Lead atualizado',
-      description: `${sourceLead.nome} movido para ${newPipelineData[targetStage].title}`,
-    })
-  } catch (error) {
-    // Revert on error
-    setPipelineData(pipelineData)
-    toast({
-      title: 'Erro ao atualizar',
-      description: 'Não foi possível mover o lead. Tente novamente.',
-      variant: 'destructive',
-    })
-  }
-}
-
-const activeLead = activeId
-  ? Object.values(pipelineData).flatMap(stage => stage.leads).find(l => l.id === activeId)
-  : null
-
-if (loading) {
   return (
-    <div className="flex items-center justify-center h-96">
-      <div className="text-center">
-        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-        <p className="text-gray-600">Carregando pipeline...</p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">CRM Pipeline</h1>
+            <p className="text-gray-600">Gerencie seus leads no funil de vendas</p>
+          </div>
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleNewLead}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Lead
+          </Button>
+        </div>
+
+        {/* Pipeline Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto">
+          {Object.entries(pipelineData).map(([stage, column]) => (
+            <DroppableColumn
+              key={stage}
+              stage={stage}
+              title={column.title}
+              count={column.leads.length}
+              color={column.color}
+              leads={column.leads}
+              onAddLead={handleNewLead}
+              onEditLead={handleEditLead}
+            />
+          ))}
+        </div>
+
+        <LeadFormDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          lead={selectedLead}
+          onSuccess={handleSuccess}
+        />
+
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeLead ? (
+            <div className="opacity-90 transform rotate-3 scale-105">
+              <LeadCard
+                {...activeLead}
+                onCall={() => { }}
+                onWhatsApp={() => { }}
+                onProposal={() => { }}
+                onView={() => { }}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
       </div>
-    </div>
+    </DndContext>
   )
-}
-
-return (
-  <DndContext
-    sensors={sensors}
-    collisionDetection={closestCorners}
-    onDragStart={handleDragStart}
-    onDragEnd={handleDragEnd}
-  >
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">CRM Pipeline</h1>
-          <p className="text-gray-600">Gerencie seus leads no funil de vendas</p>
-        </div>
-        <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleNewLead}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Lead
-        </Button>
-      </div>
-
-      {/* Pipeline Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto">
-        {Object.entries(pipelineData).map(([stage, column]) => (
-          <DroppableColumn
-            key={stage}
-            onOpenChange={setIsDialogOpen}
-            lead={selectedLead}
-            onSuccess={handleSuccess}
-          />
-
-    {/* Drag Overlay */ }
-          <DragOverlay>
-      {
-            activeLead?(
-        <div className = "opacity-90 transform rotate-3 scale-105" >
-                <LeadCard
-                  {...activeLead}
-                  onCall={() => { }}
-                  onWhatsApp={() => { }}
-                  onProposal={() => { }}
-                  onView={() => { }}
-                />
-        </div>
-      ) : null}
-    </DragOverlay>
-  </DndContext>
-)
 }
