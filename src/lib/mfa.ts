@@ -323,3 +323,47 @@ export async function getBackupCodesCount(userId: string): Promise<number> {
     return 0
   }
 }
+
+export class MFAService {
+  generateSecret(): string {
+    const totp = new OTPAuth.TOTP({
+      issuer: APP_NAME,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    })
+    return totp.secret.base32
+  }
+
+  async generateQRCode(label: string, secret: string): Promise<string> {
+    const totp = new OTPAuth.TOTP({
+      issuer: APP_NAME,
+      label,
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+      secret: OTPAuth.Secret.fromBase32(secret),
+    })
+
+    const otpauthUrl = totp.toString()
+    return QRCode.toDataURL(otpauthUrl)
+  }
+
+  verifyToken(secret: string, token: string): boolean {
+    const totp = new OTPAuth.TOTP({
+      secret: OTPAuth.Secret.fromBase32(secret),
+      algorithm: 'SHA1',
+      digits: 6,
+      period: 30,
+    })
+
+    const delta = totp.validate({ token, window: 1 })
+    return delta !== null
+  }
+
+  generateBackupCodes(count: number = 10): string[] {
+    return Array.from({ length: count }, () =>
+      generateBackupCode()
+    )
+  }
+}

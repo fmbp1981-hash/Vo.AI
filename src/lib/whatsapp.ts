@@ -25,6 +25,13 @@ export class EvolutionAPI {
   }
 
   /**
+   * Check if API is configured
+   */
+  isConfigured(): boolean {
+    return !!this.client.defaults.baseURL && !!this.client.defaults.headers['apikey']
+  }
+
+  /**
    * Get QR Code for WhatsApp connection
    */
   async getQRCode(): Promise<{ qrcode: string; status: string }> {
@@ -243,6 +250,10 @@ export class EvolutionAPI {
 // Singleton instance
 export const evolutionAPI = new EvolutionAPI()
 
+export function getWhatsAppProvider() {
+  return evolutionAPI
+}
+
 // Helper functions
 
 /**
@@ -253,12 +264,12 @@ export const evolutionAPI = new EvolutionAPI()
 export function normalizePhoneNumber(phone: string): string {
   // Remove all non-digits
   const digits = phone.replace(/\D/g, '')
-  
+
   // If starts with country code, return as is
   if (digits.startsWith('55') && digits.length >= 12) {
     return digits
   }
-  
+
   // Add Brazil country code
   return `55${digits}`
 }
@@ -270,15 +281,15 @@ export function normalizePhoneNumber(phone: string): string {
  */
 export function formatPhoneNumber(phone: string): string {
   const digits = phone.replace(/\D/g, '')
-  
+
   if (digits.length === 13) { // 55 + DDD + 9 digits
     return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`
   }
-  
+
   if (digits.length === 12) { // 55 + DDD + 8 digits (landline)
     return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 8)}-${digits.slice(8)}`
   }
-  
+
   return phone
 }
 
