@@ -130,7 +130,7 @@ function DroppableColumn({ stage, title, count, color, leads, onAddLead, onEditL
 
           {leads.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-sm text-gray-500 mb-2">Nenhum lead nesta coluna</p>
+              <p className="text-sm text-muted-foreground mb-2">Nenhum lead nesta coluna</p>
               <Button variant="outline" size="sm" onClick={onAddLead}>
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Lead
@@ -371,8 +371,8 @@ export function CRMPipeline() {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Carregando pipeline...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando pipeline...</p>
         </div>
       </div>
     )
@@ -389,8 +389,8 @@ export function CRMPipeline() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">CRM Pipeline</h1>
-            <p className="text-gray-600">Gerencie seus leads no funil de vendas</p>
+            <h1 className="text-2xl font-bold text-foreground">CRM Pipeline</h1>
+            <p className="text-muted-foreground">Gerencie seus leads no funil de vendas</p>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleNewLead}>
             <Plus className="w-4 h-4 mr-2" />

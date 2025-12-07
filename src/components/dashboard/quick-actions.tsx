@@ -1,81 +1,78 @@
 "use client"
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { 
-  Plus, 
-  Map, 
-  FileText, 
+import {
+  Plus,
+  Map,
+  FileText,
   MessageSquare,
-  Phone,
   Calendar,
-  Users,
-  BarChart3
 } from 'lucide-react'
 
 interface QuickAction {
+  id: string
   title: string
   description: string
   icon: React.ElementType
   action: string
-  color: 'blue' | 'green' | 'orange' | 'purple' | 'red'
+  href: string
+  colorClasses: string
 }
 
 const quickActions: QuickAction[] = [
   {
+    id: 'novo-lead',
     title: 'Novo Lead',
     description: 'Adicionar novo cliente potencial',
     icon: Plus,
     action: 'Criar Lead',
-    color: 'blue'
+    href: '/crm',
+    colorClasses: 'bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30'
   },
   {
+    id: 'gerar-roteiro',
     title: 'Gerar Roteiro',
     description: 'Criar roteiro automático com IA',
     icon: Map,
     action: 'Gerar Agora',
-    color: 'green'
+    href: '/roteiros',
+    colorClasses: 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20 dark:text-emerald-400 dark:bg-emerald-500/20 dark:hover:bg-emerald-500/30'
   },
   {
+    id: 'nova-proposta',
     title: 'Nova Proposta',
     description: 'Enviar proposta personalizada',
     icon: FileText,
     action: 'Criar Proposta',
-    color: 'orange'
+    href: '/propostas',
+    colorClasses: 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20 dark:text-amber-400 dark:bg-amber-500/20 dark:hover:bg-amber-500/30'
   },
   {
+    id: 'iniciar-chat',
     title: 'Iniciar Chat',
     description: 'Conversar com lead via WhatsApp',
     icon: MessageSquare,
     action: 'Abrir Chat',
-    color: 'purple'
+    href: '/chat',
+    colorClasses: 'bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 border-violet-500/20 dark:text-violet-400 dark:bg-violet-500/20 dark:hover:bg-violet-500/30'
   }
 ]
 
-const getColorClasses = (color: QuickAction['color']) => {
-  switch (color) {
-    case 'blue':
-      return 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200'
-    case 'green':
-      return 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200'
-    case 'orange':
-      return 'bg-orange-50 text-orange-600 hover:bg-orange-100 border-orange-200'
-    case 'purple':
-      return 'bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-200'
-    case 'red':
-      return 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200'
-    default:
-      return 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200'
-  }
-}
-
 export function QuickActions() {
+  const router = useRouter()
+
+  const handleAction = (href: string) => {
+    router.push(href)
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-blue-600" />
+          <Calendar className="w-5 h-5 text-primary" />
           Ações Rápidas
         </CardTitle>
       </CardHeader>
@@ -85,9 +82,10 @@ export function QuickActions() {
             const Icon = action.icon
             return (
               <Button
-                key={action.title}
+                key={action.id}
                 variant="outline"
-                className={`h-auto p-4 flex flex-col items-center gap-2 ${getColorClasses(action.color)}`}
+                className={`h-auto p-4 flex flex-col items-center gap-2 ${action.colorClasses}`}
+                onClick={() => handleAction(action.href)}
               >
                 <Icon className="w-6 h-6" />
                 <div className="text-center">
@@ -98,13 +96,13 @@ export function QuickActions() {
             )
           })}
         </div>
-        
-        <div className="mt-4 pt-4 border-t border-gray-200">
+
+        <div className="mt-4 pt-4 border-t border-border">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              Precisa de ajuda? 
+            <span className="text-sm text-muted-foreground">
+              Precisa de ajuda?
             </span>
-            <Button variant="link" size="sm" className="text-blue-600">
+            <Button variant="link" size="sm" className="text-primary">
               Ver Tutorial
             </Button>
           </div>

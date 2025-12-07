@@ -14,31 +14,26 @@ import {
   MessageSquare,
   Map,
   FileText,
-  BarChart3,
   Settings,
   HelpCircle,
   Plus,
-  Phone,
-  Mail,
-  Calendar,
-  Target,
-  TrendingUp,
+  CheckSquare,
+  Inbox,
   LogOut
 } from 'lucide-react'
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard, current: true },
-  { name: 'CRM Pipeline', href: '/crm', icon: Users, current: false },
-  { name: 'Chat Hub', href: '/chat', icon: MessageSquare, current: false, badge: '3' },
-  { name: 'Roteiros', href: '/roteiros', icon: Map, current: false },
-  { name: 'Propostas', href: '/propostas', icon: FileText, current: false },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3, current: false },
-  { name: 'Contatos', href: '/contatos', icon: Phone, current: false },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'CRM Pipeline', href: '/crm', icon: Users },
+  { name: 'Chat Hub', href: '/chat', icon: MessageSquare, badge: '3' },
+  { name: 'Inbox', href: '/inbox', icon: Inbox },
+  { name: 'Roteiros', href: '/roteiros', icon: Map },
+  { name: 'Propostas', href: '/propostas', icon: FileText },
+  { name: 'Tarefas', href: '/tarefas', icon: CheckSquare },
 ]
 
 const secondaryNavigation = [
-  { name: 'Configurações', href: '/configuracoes', icon: Settings },
-  { name: 'Ajuda', href: '/ajuda', icon: HelpCircle },
+  { name: 'Segurança', href: '/settings/security', icon: Settings },
 ]
 
 export function Sidebar() {
@@ -82,10 +77,12 @@ export function Sidebar() {
 
       {/* Quick Actions */}
       <div className="p-4">
-        <Button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-background shadow-lg shadow-cyan-500/20" size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Lead
-        </Button>
+        <Link href="/crm">
+          <Button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-background shadow-lg shadow-cyan-500/20" size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Lead
+          </Button>
+        </Link>
       </div>
 
       {/* Main Navigation */}
@@ -150,12 +147,12 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-        
+
         <Button
           variant="ghost"
           size="sm"
           onClick={handleSignOut}
-          className="w-full mt-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="w-full mt-2 text-destructive hover:text-destructive hover:bg-destructive/10"
         >
           <LogOut className="w-4 h-4 mr-2" />
           Sair
