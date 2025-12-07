@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Mail, Lock, User, UserPlus, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { Mail, Lock, User, UserPlus, Eye, EyeOff, AlertCircle, CheckCircle, Building2 } from 'lucide-react'
 
 export default function RegisterPage() {
     const [name, setName] = useState('')
+    const [company, setCompany] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -46,7 +47,7 @@ export default function RegisterPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name, company, email, password }),
             })
 
             const data = await response.json()
@@ -112,6 +113,22 @@ export default function RegisterPage() {
                                                 value={name}
                                                 onChange={(e) => setName(e.target.value)}
                                                 placeholder="Seu nome"
+                                                className="pl-10"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <Label htmlFor="company">Nome da Empresa</Label>
+                                        <div className="relative">
+                                            <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                            <Input
+                                                id="company"
+                                                type="text"
+                                                value={company}
+                                                onChange={(e) => setCompany(e.target.value)}
+                                                placeholder="Nome da sua agência"
                                                 className="pl-10"
                                                 required
                                             />

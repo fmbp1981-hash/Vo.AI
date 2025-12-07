@@ -71,7 +71,9 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">Vo.AI</h1>
-          <p className="text-xs text-muted-foreground">Sistema de Gestão</p>
+          <p className="text-xs text-secondary font-medium">
+            {session?.user?.company || 'Sistema de Gestão'}
+          </p>
         </div>
       </div>
 
@@ -161,16 +163,16 @@ export function Sidebar() {
 
       {/* IntelliX.AI Footer */}
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-2 justify-center">
+        <div className="flex flex-col items-center gap-2">
           <Image
             src="/intellix-logo.png"
             alt="IntelliX.AI"
-            width={24}
-            height={24}
-            className="opacity-70"
+            width={80}
+            height={40}
+            className="opacity-80"
           />
           <div className="text-xs text-muted-foreground">
-            Desenvolvido por <span className="font-medium">IntelliX.AI</span>
+            Desenvolvido por <span className="font-medium text-secondary">IntelliX.AI</span>
           </div>
         </div>
       </div>

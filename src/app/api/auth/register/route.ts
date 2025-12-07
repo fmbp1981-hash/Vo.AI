@@ -5,26 +5,34 @@ import bcrypt from 'bcryptjs'
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json()
-        const { name, email, password } = body
+        const { name, company, email, password } = body
 
         // Validate required fields
-        if (!name || !email || !password) {
+        if (!name || !company || !email || !password) {
             return NextResponse.json(
-                { error: 'Nome, email e senha são obrigatórios' },
+                { error: 'Nome, empresa, email e senha são obrigatórios' },
                 { status: 400 }
             )
         }
 
-        // Get or create default tenant
+        // Generate slug from company name
+        const slug = company
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '')
+
+        // Create or get tenant for this company
         let tenant = await db.tenant.findFirst({
-            where: { slug: 'default' }
+            where: { slug }
         })
 
         if (!tenant) {
             tenant = await db.tenant.create({
                 data: {
-                    name: 'Default',
-                    slug: 'default',
+                    name: company,
+                    slug,
                     isActive: true,
                 }
             })
@@ -40,7 +48,7 @@ export async function POST(request: NextRequest) {
 
         if (existingUser) {
             return NextResponse.json(
-                { error: 'Este email já está cadastrado' },
+                { error: 'Este email já está cadastrado nesta empresa' },
                 { status: 400 }
             )
         }
@@ -48,13 +56,13 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 12)
 
-        // Create user
+        // Create user as admin for their company
         const user = await db.user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
-                role: 'consultant',
+                role: 'admin',
                 tenantId: tenant.id,
             },
             select: {
@@ -63,6 +71,11 @@ export async function POST(request: NextRequest) {
                 email: true,
                 role: true,
                 createdAt: true,
+                tenant: {
+                    select: {
+                        name: true,
+                    }
+                }
             }
         })
 
@@ -80,3 +93,4 @@ export async function POST(request: NextRequest) {
         )
     }
 }
+

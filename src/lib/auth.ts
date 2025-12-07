@@ -18,9 +18,12 @@ export const authOptions: NextAuthOptions = {
                     throw new Error('Invalid credentials')
                 }
 
-                const user = await db.user.findUnique({
+                const user = await db.user.findFirst({
                     where: {
                         email: credentials.email
+                    },
+                    include: {
+                        tenant: true
                     }
                 })
 
@@ -37,7 +40,14 @@ export const authOptions: NextAuthOptions = {
                     throw new Error('Invalid credentials')
                 }
 
-                return user
+                return {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    company: user.tenant?.name || 'Sistema de Gestão',
+                    tenantId: user.tenantId,
+                }
             }
         })
     ],
@@ -49,6 +59,8 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.role = user.role
                 token.id = user.id
+                token.company = user.company
+                token.tenantId = user.tenantId
             }
             return token
         },
@@ -56,6 +68,8 @@ export const authOptions: NextAuthOptions = {
             if (token) {
                 session.user.id = token.id as string
                 session.user.role = token.role as string
+                session.user.company = token.company as string
+                session.user.tenantId = token.tenantId as string
             }
             return session
         }
@@ -72,3 +86,4 @@ export const authOptions: NextAuthOptions = {
 const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
+
