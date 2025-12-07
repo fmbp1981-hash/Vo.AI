@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { cn } from '@/lib/utils'
@@ -15,7 +16,6 @@ import {
   Map,
   FileText,
   Settings,
-  HelpCircle,
   Plus,
   CheckSquare,
   Inbox,
@@ -66,23 +66,23 @@ export function Sidebar() {
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
       {/* Logo */}
       <div className="flex items-center gap-3 p-6 border-b border-sidebar-border">
-        <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <span className="text-background font-bold text-xl">V</span>
+        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <span className="text-primary-foreground font-bold text-xl">V</span>
         </div>
         <div>
           <h1 className="text-lg font-bold tracking-tight">Vo.AI</h1>
-          <p className="text-xs text-muted-foreground">AGIR Viagens</p>
+          <p className="text-xs text-muted-foreground">Sistema de Gestão</p>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="p-4">
-        <Link href="/crm">
-          <Button className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-background shadow-lg shadow-cyan-500/20" size="sm">
+        <Button asChild className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg shadow-primary/20" size="sm">
+          <Link href="/crm">
             <Plus className="w-4 h-4 mr-2" />
             Novo Lead
-          </Button>
-        </Link>
+          </Link>
+        </Button>
       </div>
 
       {/* Main Navigation */}
@@ -133,8 +133,8 @@ export function Sidebar() {
       {/* User Info */}
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-gold-500 to-gold-600 rounded-xl flex items-center justify-center shadow-lg shadow-gold-500/20">
-            <span className="text-background text-sm font-bold">
+          <div className="w-9 h-9 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl flex items-center justify-center shadow-lg shadow-secondary/20">
+            <span className="text-secondary-foreground text-sm font-bold">
               {getUserInitials(session?.user?.name)}
             </span>
           </div>
@@ -157,6 +157,22 @@ export function Sidebar() {
           <LogOut className="w-4 h-4 mr-2" />
           Sair
         </Button>
+      </div>
+
+      {/* IntelliX.AI Footer */}
+      <div className="p-4 border-t border-sidebar-border">
+        <div className="flex items-center gap-2 justify-center">
+          <Image
+            src="/intellix-logo.png"
+            alt="IntelliX.AI"
+            width={24}
+            height={24}
+            className="opacity-70"
+          />
+          <div className="text-xs text-muted-foreground">
+            Desenvolvido por <span className="font-medium">IntelliX.AI</span>
+          </div>
+        </div>
       </div>
     </div>
   )

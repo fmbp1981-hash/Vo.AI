@@ -69,23 +69,23 @@ interface PipelineColumnProps {
 const stageConfig = {
   'Novo Lead': {
     title: 'Novos Leads',
-    color: 'border-blue-200 bg-blue-50',
+    color: 'border-blue-300 bg-blue-100 dark:bg-blue-900/30 dark:border-blue-700',
   },
   'Qualificação': {
     title: 'Qualificação',
-    color: 'border-yellow-200 bg-yellow-50',
+    color: 'border-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 dark:border-yellow-700',
   },
   'Proposta': {
     title: 'Proposta',
-    color: 'border-orange-200 bg-orange-50',
+    color: 'border-orange-300 bg-orange-100 dark:bg-orange-900/30 dark:border-orange-700',
   },
   'Negociação': {
     title: 'Negociação',
-    color: 'border-purple-200 bg-purple-50',
+    color: 'border-purple-300 bg-purple-100 dark:bg-purple-900/30 dark:border-purple-700',
   },
   'Fechado': {
     title: 'Fechados',
-    color: 'border-green-200 bg-green-50',
+    color: 'border-green-300 bg-green-100 dark:bg-green-900/30 dark:border-green-700',
   },
 }
 

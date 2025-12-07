@@ -64,16 +64,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-lg">V</span>
+          <div className="mx-auto h-12 w-12 bg-primary rounded-lg flex items-center justify-center mb-4">
+            <span className="text-primary-foreground font-bold text-lg">V</span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">Vo.AI</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            AGIR Viagens - Sistema de Gestão
+          <h2 className="text-3xl font-bold text-foreground">Vo.AI</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Sistema de Gestão para Agências de Viagens
           </p>
         </div>
 
@@ -95,13 +95,13 @@ export default function LoginPage() {
 
               {showMfaInput ? (
                 <div className="space-y-4">
-                  <div className="text-center text-sm text-gray-600 mb-4">
+                  <div className="text-center text-sm text-muted-foreground mb-4">
                     Digite o código de 6 dígitos do seu aplicativo autenticador.
                   </div>
                   <div>
                     <Label htmlFor="mfaCode">Código de Verificação</Label>
                     <div className="relative">
-                      <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                       <Input
                         id="mfaCode"
                         type="text"
@@ -129,7 +129,7 @@ export default function LoginPage() {
                   <div>
                     <Label htmlFor="email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                       <Input
                         id="email"
                         type="email"
@@ -145,7 +145,7 @@ export default function LoginPage() {
                   <div>
                     <Label htmlFor="password">Senha</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
@@ -175,12 +175,12 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full"
                 disabled={loading}
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
                     Verificando...
                   </div>
                 ) : (
@@ -193,11 +193,16 @@ export default function LoginPage() {
             </form>
 
             {!showMfaInput && (
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Esqueceu sua senha?{' '}
-                  <Link href="/auth/reset-password" className="text-blue-600 hover:text-blue-500">
-                    Recuperar
+              <div className="mt-6 space-y-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Não tem uma conta?{' '}
+                  <Link href="/auth/register" className="text-primary hover:text-primary/80 font-medium">
+                    Criar conta
+                  </Link>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <Link href="/auth/reset-password" className="text-primary hover:text-primary/80">
+                    Esqueceu sua senha?
                   </Link>
                 </p>
               </div>
@@ -206,8 +211,8 @@ export default function LoginPage() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
-          <p>&copy; 2024 Vo.AI - AGIR Viagens. Todos os direitos reservados.</p>
+        <div className="text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Vo.AI. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>
