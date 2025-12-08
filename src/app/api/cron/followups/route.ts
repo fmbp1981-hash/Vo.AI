@@ -193,13 +193,33 @@ export async function POST(request: NextRequest) {
 
         switch (action) {
             case 'schedule_trip_reminders':
-                return scheduleTrioReminders()
+                return scheduleTripReminders()
 
             case 'schedule_inactivity':
                 return scheduleInactivityFollowUps()
 
             case 'schedule_no_response':
                 return scheduleNoResponseFollowUps()
+
+            case 'schedule_birthdays':
+                return scheduleBirthdayMessages()
+
+            case 'schedule_feedback':
+                return schedulePostTripFeedback()
+
+            case 'run_all':
+                // Run all schedulers at once
+                const tripResults = await scheduleTripRemindersInternal()
+                const inactivityResults = await scheduleInactivityInternal()
+                const birthdayResults = await scheduleBirthdaysInternal()
+                const feedbackResults = await scheduleFeedbackInternal()
+                return NextResponse.json({
+                    success: true,
+                    tripReminders: tripResults,
+                    inactivity: inactivityResults,
+                    birthdays: birthdayResults,
+                    feedback: feedbackResults,
+                })
 
             default:
                 return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
@@ -210,30 +230,31 @@ export async function POST(request: NextRequest) {
 }
 
 // Schedule trip reminders for upcoming departures
-async function scheduleTrioReminders() {
-    const now = new Date()
-    const results = { scheduled: 0 }
+async function scheduleTripReminders() {
+    const results = await scheduleTripRemindersInternal()
+    return NextResponse.json({ success: true, ...results })
+}
 
-    // Find leads with upcoming trips (7 days, 1 day, today)
+async function scheduleTripRemindersInternal() {
+    const now = new Date()
+    const results = { scheduled: 0, types: [] as string[] }
+
     const upcomingTrips = await db.lead.findMany({
         where: {
             dataPartida: { not: null },
             estagio: { in: ['Fechado', 'Fechado Ganho', 'Negociação'] },
+            telefoneNormalizado: { not: null },
         },
         select: {
-            id: true,
-            nome: true,
-            telefoneNormalizado: true,
-            destino: true,
-            dataPartida: true,
-            lembrete7dEnviado: true,
-            lembrete1dEnviado: true,
-            lembreteDiaEnviado: true,
+            id: true, nome: true, telefoneNormalizado: true, destino: true,
+            dataPartida: true, dataRetorno: true,
+            lembrete7dEnviado: true, lembrete1dEnviado: true, lembreteDiaEnviado: true,
+            feedbackEnviado: true,
         }
     })
 
     for (const lead of upcomingTrips) {
-        if (!lead.dataPartida || !lead.telefoneNormalizado) continue
+        if (!lead.dataPartida) continue
 
         const daysUntilTrip = Math.ceil(
             (lead.dataPartida.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
@@ -243,46 +264,47 @@ async function scheduleTrioReminders() {
         if (daysUntilTrip === 7 && !lead.lembrete7dEnviado) {
             await createFollowUp(lead.id, 'reminder_7d', lead.nome, lead.destino)
             results.scheduled++
+            results.types.push('7d')
         }
 
         // 1 day reminder
         if (daysUntilTrip === 1 && !lead.lembrete1dEnviado) {
             await createFollowUp(lead.id, 'reminder_1d', lead.nome, lead.destino)
             results.scheduled++
+            results.types.push('1d')
         }
 
         // Day of trip
         if (daysUntilTrip === 0 && !lead.lembreteDiaEnviado) {
             await createFollowUp(lead.id, 'reminder_day', lead.nome, lead.destino)
             results.scheduled++
+            results.types.push('day')
         }
     }
 
-    return NextResponse.json({ success: true, ...results })
+    return results
 }
 
 // Schedule inactivity follow-ups
 async function scheduleInactivityFollowUps() {
+    const results = await scheduleInactivityInternal()
+    return NextResponse.json({ success: true, ...results })
+}
+
+async function scheduleInactivityInternal() {
     const now = new Date()
     const results = { scheduled: 0 }
-
-    // Find inactive leads (30+ days since last contact)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    const fortyFiveDaysAgo = new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000)
 
     const inactiveLeads = await db.lead.findMany({
         where: {
-            estagio: { in: ['Novo Lead', 'Qualificação'] },
+            estagio: { in: ['Novo Lead', 'Qualificação', 'Gerar Proposta', 'Cancelado', 'Não Qualificado'] },
             updatedAt: { lte: thirtyDaysAgo },
             telefoneNormalizado: { not: null },
         },
         select: {
-            id: true,
-            nome: true,
-            destino: true,
-            updatedAt: true,
-            followUp30dEnviado: true,
-            followUp45dEnviado: true,
+            id: true, nome: true, destino: true, updatedAt: true,
+            followUp30dEnviado: true, followUp45dEnviado: true,
         }
     })
 
@@ -300,17 +322,102 @@ async function scheduleInactivityFollowUps() {
         }
     }
 
+    return results
+}
+
+// Schedule no-response follow-ups
+async function scheduleNoResponseFollowUps() {
+    return NextResponse.json({
+        success: true,
+        message: 'No-response follow-ups are scheduled by the agent workflow based on conversation tracking'
+    })
+}
+
+// Schedule birthday messages
+async function scheduleBirthdayMessages() {
+    const results = await scheduleBirthdaysInternal()
     return NextResponse.json({ success: true, ...results })
 }
 
-// Schedule no-response follow-ups (for recent leads)
-async function scheduleNoResponseFollowUps() {
-    // This would be triggered based on last message time
-    // For now, return empty - to be implemented based on conversation tracking
-    return NextResponse.json({
-        success: true,
-        message: 'No-response follow-ups should be scheduled by the agent workflow'
+async function scheduleBirthdaysInternal() {
+    const now = new Date()
+    const results = { scheduled: 0, leads: [] as string[] }
+
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const todayMonth = today.getMonth() + 1
+    const todayDay = today.getDate()
+
+    // Find all leads with birthdays - we need to check month/day
+    const allLeads = await db.lead.findMany({
+        where: {
+            dataNascimento: { not: null },
+            telefoneNormalizado: { not: null },
+        },
+        select: {
+            id: true, nome: true, dataNascimento: true, destino: true,
+        }
     })
+
+    for (const lead of allLeads) {
+        if (!lead.dataNascimento) continue
+
+        const birthMonth = lead.dataNascimento.getMonth() + 1
+        const birthDay = lead.dataNascimento.getDate()
+
+        // Check if today is their birthday
+        if (birthMonth === todayMonth && birthDay === todayDay) {
+            // Check if we already sent birthday message today
+            const existingBirthday = await db.followUp.findFirst({
+                where: {
+                    leadId: lead.id,
+                    type: 'birthday',
+                    createdAt: { gte: today },
+                }
+            })
+
+            if (!existingBirthday) {
+                await createFollowUp(lead.id, 'birthday', lead.nome, lead.destino)
+                results.scheduled++
+                results.leads.push(lead.nome)
+            }
+        }
+    }
+
+    return results
+}
+
+// Schedule post-trip feedback (2 days after return)
+async function schedulePostTripFeedback() {
+    const results = await scheduleFeedbackInternal()
+    return NextResponse.json({ success: true, ...results })
+}
+
+async function scheduleFeedbackInternal() {
+    const now = new Date()
+    const results = { scheduled: 0 }
+
+    // Find leads who returned 2 days ago
+    const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)
+    const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)
+
+    const returnedLeads = await db.lead.findMany({
+        where: {
+            dataRetorno: { gte: threeDaysAgo, lte: twoDaysAgo },
+            estagio: { in: ['Fechado', 'Fechado Ganho'] },
+            telefoneNormalizado: { not: null },
+            feedbackEnviado: false,
+        },
+        select: {
+            id: true, nome: true, destino: true,
+        }
+    })
+
+    for (const lead of returnedLeads) {
+        await createFollowUp(lead.id, 'feedback_2d', lead.nome, lead.destino)
+        results.scheduled++
+    }
+
+    return results
 }
 
 // Helper to create follow-up record
@@ -320,12 +427,45 @@ async function createFollowUp(
     nome: string | null,
     destino: string | null
 ) {
+    const firstName = nome?.split(' ')[0] || 'Cliente'
+    const dest = destino || 'seu destino'
+
     const templates: Record<string, string> = {
-        'reminder_7d': `Olá ${nome?.split(' ')[0] || 'Cliente'}! 🎉 Faltam apenas 7 dias para sua viagem para ${destino || 'seu destino'}! Já preparou tudo?`,
-        'reminder_1d': `Oi ${nome?.split(' ')[0] || 'Cliente'}! 🛫 Amanhã é o grande dia! Sua viagem para ${destino || 'seu destino'} está quase começando. Boa viagem!`,
-        'reminder_day': `Bom dia ${nome?.split(' ')[0] || 'Cliente'}! 🌟 Hoje começa sua aventura em ${destino || 'seu destino'}! Desejamos uma viagem incrível!`,
-        'inactivity_30d': `Olá ${nome?.split(' ')[0] || 'Cliente'}! Faz um tempinho que não nos falamos. Já pensou em sua próxima viagem? Temos ótimas ofertas! ✈️`,
-        'inactivity_45d': `Oi ${nome?.split(' ')[0] || 'Cliente'}! A AGIR está com condições especiais! Que tal planejar aquela viagem que você sempre quis? 🌴`,
+        'reminder_7d': `Olá ${firstName}! 🌍✈️ Faltam apenas 7 dias para a sua viagem para ${dest}!
+
+Que tal revisar tudo para garantir uma experiência tranquila?
+
+🧾 *Checklist de viagem:*
+✅ Documentos (RG/CNH ou Passaporte)
+✅ Passagens e reservas
+✅ Cartões habilitados
+✅ Medicamentos (se usar)
+
+Conte sempre com a equipe da *AGIR Viagens* para o que precisar. 💙`,
+        'reminder_1d': `Oi ${firstName}! 😍 Amanhã é o grande dia da sua viagem para ${dest}!
+
+🧳 *Checklist final:*
+✅ Documentos ok?
+✅ Passagem e reservas?
+✅ Cartões e dinheiro?
+✅ Malas prontas?
+✅ Itinerário no celular?
+
+A *AGIR Viagens* está sempre com você. 💙`,
+        'reminder_day': `Bom dia, ${firstName}! 🌞 Hoje é o dia da sua viagem para ${dest}!
+
+Desejamos uma viagem incrível e cheia de boas lembranças! 💙
+A *AGIR Viagens* está sempre à disposição. 😉`,
+        'inactivity_30d': `Olá ${firstName}! Faz um tempinho que não nos falamos. Já pensou em sua próxima viagem? Temos ótimas ofertas! ✈️`,
+        'inactivity_45d': `Oi ${firstName}! A AGIR está com condições especiais! Que tal planejar aquela viagem que você sempre quis? 🌴`,
+        'feedback_2d': `Oi ${firstName}! 😍 Que bom tê-lo(a) de volta! Como foi sua viagem para ${dest}? Adoraríamos ouvir sobre sua experiência e saber se a AGIR Viagens contribuiu para tornar tudo especial. Seu feedback faz toda diferença pra gente! 💬💙`,
+        'birthday': `🎉 Parabéns, ${firstName}! 🎉
+
+A equipe da AGIR Viagens deseja a você um Feliz Aniversário, repleto de alegria, novas descobertas e, claro, muitas viagens incríveis!
+
+Que seu novo ciclo seja tão especial quanto você. 💙✈️
+
+Conte sempre conosco para transformar seus sonhos em realidade.`,
     }
 
     await db.followUp.create({
@@ -335,7 +475,8 @@ async function createFollowUp(
             message: templates[type] || `Follow-up: ${type}`,
             channel: 'whatsapp',
             status: 'pending',
-            scheduledFor: new Date(), // Send immediately on next CRON run
+            scheduledFor: new Date(),
         }
     })
 }
+

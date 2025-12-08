@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { getWhatsAppProvider } from '@/lib/whatsapp'
 
 // API to schedule and send automated follow-up messages
-// Types: no_response, inactivity, trip_reminder, feedback
+// Types: no_response, inactivity, trip_reminder, feedback, birthday, reactivation
 
 interface FollowUpSchedule {
     type: string
@@ -11,66 +11,152 @@ interface FollowUpSchedule {
     message: string
 }
 
-// Follow-up templates based on lead stage and timing
+// Follow-up templates based on n8n workflow logic
 const FOLLOWUP_TEMPLATES = {
-    // No response follow-ups
+    // === NO RESPONSE SEQUENCE (Progressive) ===
+    no_response_30min: {
+        type: 'no_response_30min',
+        delayHours: 0.5,
+        message: 'Olá! Só passando para ver se ainda posso te ajudar com sua viagem. 😊'
+    },
     no_response_2h: {
         type: 'no_response_2h',
         delayHours: 2,
-        message: 'Olá {nome}! 👋 Notei que você ainda não respondeu. Posso te ajudar com algo sobre sua viagem?'
+        message: 'Oi {nome}! Alguma novidade sobre sua viagem? Estou aqui para ajudar! 😉'
     },
     no_response_4h: {
         type: 'no_response_4h',
         delayHours: 4,
-        message: 'Oi {nome}! Ainda estou aqui se precisar de ajuda para planejar sua viagem dos sonhos! ✈️'
+        message: 'Pensando em você, {nome}! Encontrei algumas opções de custo-benefício para {destino}. Quer dar uma olhada? ✨'
     },
     no_response_1d: {
         type: 'no_response_1d',
         delayHours: 24,
-        message: 'Olá {nome}! Passando para lembrar que estamos à disposição para te ajudar com sua próxima viagem! 🌍'
+        message: 'Olá {nome}! Ainda tem interesse em planejar sua viagem? Se precisar de algo, é só falar!'
     },
     no_response_2d: {
         type: 'no_response_2d',
         delayHours: 48,
-        message: 'Oi {nome}! Ainda pensando na viagem? Posso te ajudar a encontrar as melhores opções! 😊'
+        message: 'Preparei um mini-guia rápido sobre {destino}, {nome}. Espero que ajude! 🗺️'
+    },
+    no_response_3d: {
+        type: 'no_response_3d',
+        delayHours: 72,
+        message: 'Olá {nome}! Como não tive retorno, vou encerrar nosso atendimento por enquanto. Se precisar de algo no futuro, é só me chamar! A AGIR Viagens está sempre à disposição. 👋'
     },
 
-    // Inactivity follow-ups
+    // === INACTIVITY / REACTIVATION ===
     inactivity_30d: {
         type: 'inactivity_30d',
-        delayHours: 720, // 30 days
+        delayHours: 720,
         message: 'Olá {nome}! Faz um tempinho que não nos falamos. Já pensou em sua próxima viagem? Temos ótimas ofertas! ✈️'
     },
     inactivity_45d: {
         type: 'inactivity_45d',
-        delayHours: 1080, // 45 days
+        delayHours: 1080,
         message: 'Oi {nome}! A AGIR está com condições especiais! Que tal planejar aquela viagem que você sempre quis? 🌴'
     },
+    reactivation: {
+        type: 'reactivation',
+        delayHours: 0,
+        message: 'Olá {nome}, notamos que faz um tempo desde nosso último contato. {historico}A AGIR Viagens tem novas propostas incríveis para você e gostaríamos de saber se ainda tem interesse em planejar sua próxima viagem!'
+    },
 
-    // Trip reminders
+    // === TRIP REMINDERS WITH CHECKLISTS ===
     reminder_7d: {
         type: 'reminder_7d',
-        delayHours: -168, // 7 days before
-        message: 'Olá {nome}! 🎉 Faltam apenas 7 dias para sua viagem para {destino}! Já preparou tudo? Qualquer dúvida estamos aqui!'
+        delayHours: -168,
+        message: `Olá {nome}! 🌍✈️ Faltam apenas 7 dias para a sua viagem para {destino}!
+
+Que tal revisar tudo para garantir uma experiência tranquila?
+
+🧾 *Checklist de viagem:*
+{checklist}
+
+Conte sempre com a equipe da *AGIR Viagens* para o que precisar. 💙`
     },
     reminder_1d: {
         type: 'reminder_1d',
-        delayHours: -24, // 1 day before
-        message: 'Oi {nome}! 🛫 Amanhã é o grande dia! Sua viagem para {destino} está quase começando. Boa viagem!'
+        delayHours: -24,
+        message: `Oi {nome}! 😍 Amanhã é o grande dia da sua viagem para {destino}!
+
+🧳 *Checklist final:*
+✅ Documentos ok (RG, CNH ou Passaporte)?
+✅ Passagem e comprovantes de reserva?
+✅ Cartões e dinheiro separados?
+✅ Malas prontas e etiquetadas?
+✅ Itinerário e contatos salvos no celular?
+
+Aproveite cada segundo dessa experiência! A *AGIR Viagens* está sempre com você. 💙`
     },
     reminder_day: {
         type: 'reminder_day',
-        delayHours: 0, // On the day
-        message: 'Bom dia {nome}! 🌟 Hoje começa sua aventura em {destino}! Desejamos uma viagem incrível! #VamoViajar'
+        delayHours: 0,
+        message: `Bom dia, {nome}! 🌞 Hoje é o dia da sua tão esperada viagem para {destino}!
+
+Antes de sair de casa, confirme se está com tudo certinho:
+✅ Documentos e passagens?
+✅ Cartões e carteira?
+✅ Celular carregado e carregadores?
+✅ Malas separadas e etiquetadas?
+
+Desejamos uma viagem incrível e cheia de boas lembranças! 💙
+A *AGIR Viagens* está sempre à disposição. 😉`
     },
 
-    // Post-trip feedback
+    // === POST-TRIP FEEDBACK ===
     feedback_2d: {
         type: 'feedback_2d',
-        delayHours: 48, // 2 days after return
-        message: 'Olá {nome}! 😊 Como foi sua viagem para {destino}? Adoraríamos ouvir sobre sua experiência! Nos conte como foi!'
+        delayHours: 48,
+        message: 'Oi {nome}! 😍 Que bom tê-lo(a) de volta! Como foi sua viagem para {destino}? Adoraríamos ouvir sobre sua experiência e saber se a AGIR Viagens contribuiu para tornar tudo especial. Seu feedback faz toda diferença pra gente! 💬💙'
+    },
+
+    // === BIRTHDAY ===
+    birthday: {
+        type: 'birthday',
+        delayHours: 0,
+        message: `🎉 Parabéns, {nome}! 🎉
+
+A equipe da AGIR Viagens deseja a você um Feliz Aniversário, repleto de alegria, novas descobertas e, claro, muitas viagens incríveis!
+
+Que seu novo ciclo seja tão especial quanto você. 💙✈️
+
+Conte sempre conosco para transformar seus sonhos em realidade.`
+    },
+
+    // === CLOSED DEAL CONFIRMATION ===
+    deal_closed: {
+        type: 'deal_closed',
+        delayHours: 0,
+        message: `🎉 Parabéns, {nome}!
+
+Sua decisão de viajar com a AGIR foi confirmada! Estamos muito felizes em fazer parte deste momento especial.
+
+Detalhes do seu pacote:
+• Destino: {destino}
+• Partida: {dataPartida}
+• Retorno: {dataRetorno}
+{tipoViagem}
+
+Em breve, você receberá um e-mail com todos os detalhes e dicas para sua viagem. Conte com a AGIR sempre que precisar!`
     }
 }
+
+// Checklists based on trip type
+const CHECKLIST_NACIONAL = `✅ *Voos nacionais:* RG ou CNH original em bom estado
+✅ Cartão de embarque e comprovante de reserva
+✅ Passagem impressa ou no celular
+✅ Cartões de crédito/débito
+✅ Medicamentos e receitas médicas (se usar)`
+
+const CHECKLIST_INTERNACIONAL = `✅ *Voos internacionais:* Passaporte válido (6+ meses)
+✅ Visto (se necessário para o destino)
+✅ Passagem de ida e volta
+✅ Seguro-viagem obrigatório
+✅ Comprovante de hospedagem
+✅ Certificado de vacinação (se exigido)
+✅ Cartões habilitados para uso internacional`
+
 
 export async function POST(request: NextRequest) {
     try {
