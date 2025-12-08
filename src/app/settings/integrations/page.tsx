@@ -34,6 +34,7 @@ interface IntegrationSettings {
     evolutionApi: { url: string; apiKey: string; instanceName: string }
     zApi: { instanceId: string; token: string; clientToken: string }
     waba: { phoneNumberId: string; accessToken: string; businessAccountId: string }
+    instagram: { accessToken: string; pageId: string; verifyToken: string }
     llm: {
         provider: 'openai' | 'google' | 'anthropic'
         openai: { apiKey: string; model: string }
@@ -90,6 +91,7 @@ const DEFAULT_SETTINGS: IntegrationSettings = {
     evolutionApi: { url: '', apiKey: '', instanceName: '' },
     zApi: { instanceId: '', token: '', clientToken: '' },
     waba: { phoneNumberId: '', accessToken: '', businessAccountId: '' },
+    instagram: { accessToken: '', pageId: '', verifyToken: 'voai_instagram_verify' },
     llm: {
         provider: 'openai',
         openai: { apiKey: '', model: 'gpt-4o' },
@@ -602,6 +604,77 @@ export default function IntegrationsPage() {
                                         </div>
                                     </CardContent>
                                 </Card>
+
+                                {/* Instagram */}
+                                <Card>
+                                    <CardHeader>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="flex items-center gap-2">
+                                                    Instagram DM
+                                                    <StatusBadge status={connectionStatus.openai} />
+                                                </CardTitle>
+                                                <CardDescription>
+                                                    Mensagens diretas do Instagram via Meta Graph API
+                                                </CardDescription>
+                                            </div>
+                                            <Button variant="outline" size="sm" disabled>
+                                                <RefreshCw className="w-4 h-4" />
+                                                <span className="ml-2">Testar</span>
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="ig-page">Page ID</Label>
+                                                <Input
+                                                    id="ig-page"
+                                                    placeholder="ID da página do Instagram"
+                                                    value={settings.instagram.pageId}
+                                                    onChange={(e) => updateNestedSetting('instagram', 'pageId', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="ig-verify">Verify Token</Label>
+                                                <Input
+                                                    id="ig-verify"
+                                                    placeholder="Token de verificação do webhook"
+                                                    value={settings.instagram.verifyToken}
+                                                    onChange={(e) => updateNestedSetting('instagram', 'verifyToken', e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="ig-token">Access Token</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id="ig-token"
+                                                    type={showPasswords['ig-token'] ? 'text' : 'password'}
+                                                    placeholder="Seu access token do Meta"
+                                                    value={settings.instagram.accessToken}
+                                                    onChange={(e) => updateNestedSetting('instagram', 'accessToken', e.target.value)}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                                                    onClick={() => togglePasswordVisibility('ig-token')}
+                                                >
+                                                    {showPasswords['ig-token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </Button>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">
+                                                Configure em <a href="https://developers.facebook.com/apps" target="_blank" className="text-primary hover:underline">developers.facebook.com</a>
+                                            </p>
+                                        </div>
+                                        <div className="p-3 bg-muted rounded-md text-sm">
+                                            <p className="font-medium mb-2">Webhook URL:</p>
+                                            <code className="text-xs bg-background p-1 rounded">{typeof window !== 'undefined' ? window.location.origin : ''}/api/instagram/webhook</code>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </TabsContent>
 
                             {/* LLM Provider */}
@@ -624,8 +697,8 @@ export default function IntegrationsPage() {
                                                 <div
                                                     key={provider.id}
                                                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${settings.llm.provider === provider.id
-                                                            ? 'border-primary bg-primary/5'
-                                                            : 'border-border hover:border-primary/50'
+                                                        ? 'border-primary bg-primary/5'
+                                                        : 'border-border hover:border-primary/50'
                                                         }`}
                                                     onClick={() => setSettings(prev => ({
                                                         ...prev,

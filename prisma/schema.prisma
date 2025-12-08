@@ -99,6 +99,7 @@ model Lead {
   assignedTo           String?   // Assigned consultant
   assignedAt           DateTime?
   lastContactAt        DateTime?
+  instagramId          String?   // Instagram user ID for DM integration
   
   // Follow-up tracking fields
   tipoViagem           String?   @default("nacional") // nacional, internacional
