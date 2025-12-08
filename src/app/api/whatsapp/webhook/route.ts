@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWhatsAppProvider } from '@/lib/whatsapp'
 import { getIO } from '@/lib/socket'
-import { generateChatCompletion, detectHandoverIntent } from '@/lib/openai'
+import { detectHandoverIntent } from '@/lib/openai'
 import { normalizePhoneNumber } from '@/lib/whatsapp/helpers'
 import { AutomationEngine } from '@/lib/automations'
+import { humanizeResponse, calculateTypingDelay } from '@/lib/humanizer'
+import { generateLLMCompletion, ChatMessage } from '@/lib/llm'
+import { getLLMConfig, getAgentConfig, getWhatsAppConfig } from '@/lib/settings'
+import { transcribeAudio, analyzeImage, downloadEvolutionMedia } from '@/lib/media'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
+
+// Supported message types
+const SUPPORTED_TEXT_TYPES = ['conversation', 'extendedTextMessage']
+const SUPPORTED_AUDIO_TYPES = ['audioMessage', 'pttMessage'] // ptt = push to talk (voice message)
+const SUPPORTED_IMAGE_TYPES = ['imageMessage']
 
 /**
  * Webhook handler for incoming WhatsApp messages from Evolution API
@@ -22,21 +31,79 @@ export async function POST(request: NextRequest) {
         const messageData = data.data || data
         const messageType = messageData.messageType || messageData.type
 
-        // Ignore non-text messages for now
-        if (messageType !== 'conversation' && messageType !== 'extendedTextMessage') {
-            console.log('[Webhook] Ignoring non-text message type:', messageType)
-            return NextResponse.json({ success: true, message: 'Ignored non-text message' })
+        // Check if message type is supported
+        const isTextMessage = SUPPORTED_TEXT_TYPES.includes(messageType)
+        const isAudioMessage = SUPPORTED_AUDIO_TYPES.includes(messageType)
+        const isImageMessage = SUPPORTED_IMAGE_TYPES.includes(messageType)
+
+        if (!isTextMessage && !isAudioMessage && !isImageMessage) {
+            console.log('[Webhook] Ignoring unsupported message type:', messageType)
+            return NextResponse.json({ success: true, message: 'Ignored unsupported message type' })
         }
 
-        // Extract phone number and message content
+        // Extract phone number
         const fromPhone = messageData.key?.remoteJid?.replace('@s.whatsapp.net', '') ||
             messageData.from?.replace('@s.whatsapp.net', '') ||
             messageData.remoteJid?.replace('@s.whatsapp.net', '')
 
-        const messageText = messageData.message?.conversation ||
-            messageData.message?.extendedTextMessage?.text ||
-            messageData.body ||
-            messageData.text
+        // Extract message content based on type
+        let messageText = ''
+        let mediaProcessed = false
+
+        if (isTextMessage) {
+            messageText = messageData.message?.conversation ||
+                messageData.message?.extendedTextMessage?.text ||
+                messageData.body ||
+                messageData.text || ''
+        } else if (isAudioMessage) {
+            console.log('[Webhook] Processing audio message...')
+            // Get audio URL or base64
+            const audioData = messageData.message?.audioMessage
+            if (audioData) {
+                // Try to get media URL from Evolution API
+                const mediaUrl = audioData.url || messageData.media?.url
+                if (mediaUrl) {
+                    try {
+                        messageText = await transcribeAudio(mediaUrl)
+                        mediaProcessed = true
+                        console.log('[Webhook] Audio transcribed:', messageText.substring(0, 100))
+                    } catch (error) {
+                        console.error('[Webhook] Audio transcription failed:', error)
+                        messageText = '[Mensagem de áudio recebida - transcrição não disponível]'
+                    }
+                } else {
+                    messageText = '[Mensagem de áudio recebida]'
+                }
+            }
+        } else if (isImageMessage) {
+            console.log('[Webhook] Processing image message...')
+            const imageData = messageData.message?.imageMessage
+            if (imageData) {
+                const mediaUrl = imageData.url || messageData.media?.url
+                const caption = imageData.caption || ''
+                if (mediaUrl) {
+                    try {
+                        const analysis = await analyzeImage(mediaUrl)
+                        messageText = caption ? `${caption}\n\n[Análise da imagem: ${analysis}]` : `[Imagem: ${analysis}]`
+                        mediaProcessed = true
+                        console.log('[Webhook] Image analyzed:', analysis.substring(0, 100))
+                    } catch (error) {
+                        console.error('[Webhook] Image analysis failed:', error)
+                        messageText = caption || '[Imagem recebida - análise não disponível]'
+                    }
+                } else {
+                    messageText = caption || '[Imagem recebida]'
+                }
+            }
+        }
+
+        // Extract pushName (WhatsApp profile name)
+        const pushName = messageData.pushName || data.body?.pushName || ''
+        const formattedName = pushName
+            ? pushName.split(' ').filter((w: string) => w).map((word: string) =>
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ')
+            : ''
 
         // Ignore if no phone or message
         if (!fromPhone || !messageText) {
@@ -63,7 +130,7 @@ export async function POST(request: NextRequest) {
         if (!lead) {
             lead = await prisma.lead.create({
                 data: {
-                    nome: fromPhone, // Will be updated when AI extracts name
+                    nome: formattedName || fromPhone, // Use WhatsApp name if available
                     telefone: fromPhone,
                     telefoneNormalizado: normalizedPhone,
                     canal: 'WhatsApp',
@@ -73,7 +140,7 @@ export async function POST(request: NextRequest) {
                     dataUltimaMensagem: new Date(),
                 }
             })
-            console.log('[Webhook] Created new lead:', lead.id)
+            console.log('[Webhook] Created new lead:', lead.id, 'Name:', formattedName || fromPhone)
 
             // Trigger automation: Lead Created
             await AutomationEngine.trigger('lead_created', {
@@ -215,8 +282,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: true, handover: true })
         }
 
-        // Generate AI response using Sofia
+        // Generate AI response using configured LLM provider
         console.log('[Webhook] Generating AI response...')
+
+        // Get tenant ID from lead if available
+        const tenantId = lead.tenantId || undefined
+
+        // Load LLM config for this tenant
+        const llmConfig = await getLLMConfig(tenantId)
+        console.log(`[Webhook] Using LLM provider: ${llmConfig.provider}, model: ${llmConfig.model}`)
 
         const leadContext = {
             nome: lead.nome,
@@ -227,21 +301,44 @@ export async function POST(request: NextRequest) {
             pessoas: lead.pessoas || undefined,
         }
 
-        const aiResponse = await generateChatCompletion({
-            messages: messages.slice(-10).map((m: any) => ({ // Last 10 messages for context
-                role: m.role,
-                content: m.content,
-            })),
-            leadContext,
-        })
+        // Build context message
+        const contextMessage = leadContext.nome !== fromPhone
+            ? `[Contexto: Cliente ${leadContext.nome}${leadContext.destino ? `, interessado em ${leadContext.destino}` : ''}]`
+            : ''
+
+        // Prepare messages for LLM
+        const llmMessages: ChatMessage[] = messages.slice(-10).map((m: any) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+        }))
+
+        // Add context to first message if available
+        if (contextMessage && llmMessages.length > 0) {
+            llmMessages[0].content = `${contextMessage}\n\n${llmMessages[0].content}`
+        }
+
+        const aiResponse = await generateLLMCompletion(llmMessages, llmConfig, tenantId)
 
         console.log('[Webhook] AI response generated:', aiResponse.substring(0, 100))
 
-        // Send AI response via WhatsApp
-        await whatsapp.sendTextMessage({
-            number: normalizedPhone,
-            message: aiResponse,
-        })
+        // Split response into natural messages using humanizer
+        const humanizedMessages = humanizeResponse(aiResponse)
+        console.log(`[Webhook] Sending ${humanizedMessages.length} humanized messages`)
+
+        // Send each message with typing delay
+        for (let i = 0; i < humanizedMessages.length; i++) {
+            const msg = humanizedMessages[i]
+            await whatsapp.sendTextMessage({
+                number: normalizedPhone,
+                message: msg,
+            })
+
+            // Add delay between messages (except last)
+            if (i < humanizedMessages.length - 1) {
+                const delay = calculateTypingDelay(msg)
+                await new Promise(resolve => setTimeout(resolve, delay))
+            }
+        }
 
         // Add AI response to history
         messages.push({

@@ -19,7 +19,8 @@ import {
   Plus,
   CheckSquare,
   Inbox,
-  LogOut
+  LogOut,
+  Plug
 } from 'lucide-react'
 
 const navigation = [
@@ -33,6 +34,7 @@ const navigation = [
 ]
 
 const secondaryNavigation = [
+  { name: 'Integrações', href: '/settings/integrations', icon: Plug },
   { name: 'Segurança', href: '/settings/security', icon: Settings },
 ]
 
