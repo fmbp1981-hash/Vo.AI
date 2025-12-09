@@ -44,94 +44,123 @@
 }
 
 :root {
-  /* Navy Blue & Gold Design System */
+  /* IntelliX Navy Blue & Gold Design System */
   --radius: 0.5rem;
 
   /* Light mode */
-  --background: oklch(0.98 0 0);
-  --foreground: oklch(0.15 0.02 250);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.02 250);
+  --background: 210 20% 98%;
+  /* Very light grey blue tint */
+  --foreground: 200 50% 10%;
+  /* Deep navy, almost black */
 
-  /* Navy Blue primary */
-  --primary: oklch(0.35 0.12 250);
-  --primary-foreground: oklch(0.98 0 0);
+  --card: 0 0% 100%;
+  --card-foreground: 200 50% 10%;
 
-  /* Gold accent */
-  --secondary: oklch(0.72 0.15 85);
-  --secondary-foreground: oklch(0.15 0 0);
+  --popover: 0 0% 100%;
+  --popover-foreground: 200 50% 10%;
 
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.45 0.02 250);
-  --accent: oklch(0.72 0.15 85);
-  --accent-foreground: oklch(0.15 0 0);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.90 0 0);
-  --input: oklch(0.95 0 0);
-  --ring: oklch(0.35 0.12 250);
+  /* Primary: IntelliX Navy Blue #002B37 -> HSL 196 100% 11% */
+  --primary: 196 100% 11%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Gold #FFB800 -> HSL 43 100% 50% */
+  --secondary: 43 100% 50%;
+  --secondary-foreground: 0 0% 0%;
+
+  --muted: 210 20% 96%;
+  --muted-foreground: 200 20% 40%;
+
+  --accent: 210 20% 96%;
+  --accent-foreground: 196 100% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 196 100% 11%;
 
   /* Charts */
-  --chart-1: oklch(0.35 0.12 250);
-  --chart-2: oklch(0.72 0.15 85);
-  --chart-3: oklch(0.50 0.10 180);
-  --chart-4: oklch(0.45 0.08 320);
-  --chart-5: oklch(0.55 0.12 140);
+  --chart-1: 196 100% 11%;
+  /* Navy */
+  --chart-2: 43 100% 50%;
+  /* Gold */
+  --chart-3: 199 89% 48%;
+  /* Cyan/Light Blue */
+  --chart-4: 35 90% 45%;
+  /* Darker Gold */
+  --chart-5: 200 50% 20%;
+  /* Medium Navy */
 
   /* Sidebar light */
-  --sidebar: oklch(0.98 0 0);
-  --sidebar-foreground: oklch(0.15 0.02 250);
-  --sidebar-primary: oklch(0.35 0.12 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.96 0.01 250);
-  --sidebar-accent-foreground: oklch(0.15 0.02 250);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.35 0.12 250);
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 200 50% 10%;
+  --sidebar-primary: 196 100% 11%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 20% 96%;
+  --sidebar-accent-foreground: 196 100% 11%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 196 100% 11%;
 }
 
 .dark {
-  /* Dark mode - Navy/Black with Gold */
-  --background: oklch(0.12 0.02 250);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0.02 250);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0.02 250);
-  --popover-foreground: oklch(0.95 0 0);
+  /* Dark mode - Deep Black/Navy with Gold */
 
-  /* Navy Blue primary (lighter for dark mode) */
-  --primary: oklch(0.55 0.15 250);
-  --primary-foreground: oklch(0.98 0 0);
+  /* Background: #050505 or very dark navy */
+  --background: 200 50% 3%;
+  --foreground: 0 0% 98%;
 
-  /* Gold accent (vibrant) */
-  --secondary: oklch(0.75 0.18 85);
-  --secondary-foreground: oklch(0.12 0 0);
+  /* Card: Slightly lighter than bg */
+  --card: 200 50% 5%;
+  --card-foreground: 0 0% 98%;
 
-  --muted: oklch(0.22 0.02 250);
-  --muted-foreground: oklch(0.70 0 0);
-  --accent: oklch(0.75 0.18 85);
-  --accent-foreground: oklch(0.12 0 0);
-  --destructive: oklch(0.55 0.20 25);
-  --border: oklch(0.28 0.02 250);
-  --input: oklch(0.20 0.02 250);
-  --ring: oklch(0.55 0.15 250);
+  --popover: 200 50% 5%;
+  --popover-foreground: 0 0% 98%;
+
+  /* Primary: IntelliX Navy Blue (Lighter for dark mode visibility? Or keep brand?) 
+     Let's use a slightly brighter Cyan/Blue for primary in dark mode to pop, or keep Gold as main accent.
+     User requested Blue, Black, Gold. Let's keep Primary as Blue but maybe brighter.
+     #00D9FF (Cyan) or just the Brand Blue. Let's stick to Brand Blue but adjust for contrast?
+     Actually, let's use the Gold as the "call to action" color often, but Primary usually means brand color.
+     Let's use a brighter blue: #0082A3 -> HSL 192 100% 32%
+  */
+  --primary: 192 100% 32%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Gold #FFB800 */
+  --secondary: 43 100% 50%;
+  --secondary-foreground: 0 0% 0%;
+
+  --muted: 200 50% 10%;
+  --muted-foreground: 215 20% 65%;
+
+  --accent: 200 50% 10%;
+  --accent-foreground: 43 100% 50%;
+  /* Gold text on accent */
+
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 200 50% 10%;
+  --input: 200 50% 10%;
+  --ring: 192 100% 32%;
 
   /* Charts dark */
-  --chart-1: oklch(0.55 0.15 250);
-  --chart-2: oklch(0.75 0.18 85);
-  --chart-3: oklch(0.55 0.12 180);
-  --chart-4: oklch(0.50 0.10 320);
-  --chart-5: oklch(0.58 0.14 140);
+  --chart-1: 192 100% 32%;
+  --chart-2: 43 100% 50%;
+  --chart-3: 199 89% 48%;
+  --chart-4: 35 90% 45%;
+  --chart-5: 200 50% 60%;
 
-  /* Sidebar dark - deep navy */
-  --sidebar: oklch(0.10 0.02 250);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.55 0.15 250);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.18 0.02 250);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.25 0.02 250);
-  --sidebar-ring: oklch(0.55 0.15 250);
+  /* Sidebar dark */
+  --sidebar: 200 50% 4%;
+  --sidebar-foreground: 215 20% 90%;
+  --sidebar-primary: 192 100% 32%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 200 50% 10%;
+  --sidebar-accent-foreground: 43 100% 50%;
+  --sidebar-border: 200 50% 10%;
+  --sidebar-ring: 192 100% 32%;
 }
 
 @layer base {

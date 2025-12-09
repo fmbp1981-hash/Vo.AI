@@ -52,10 +52,10 @@ interface LeadCardProps {
 }
 
 const canalColors = {
-  'WhatsApp': 'bg-green-100 text-green-800 border-green-200',
-  'Instagram': 'bg-pink-100 text-pink-800 border-pink-200',
-  'Email': 'bg-blue-100 text-blue-800 border-blue-200',
-  'Site': 'bg-purple-100 text-purple-800 border-purple-200',
+  'WhatsApp': 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-100 dark:border-green-800',
+  'Instagram': 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/50 dark:text-pink-100 dark:border-pink-800',
+  'Email': 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/50 dark:text-blue-100 dark:border-blue-800',
+  'Site': 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/50 dark:text-purple-100 dark:border-purple-800',
 }
 
 const CanalIcon = ({ className }: { className?: string }) => <MessageSquare className={className} />
@@ -94,7 +94,7 @@ export function LeadCard({
   onEdit
 }: LeadCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer bg-white group">
+    <Card className="hover:shadow-md transition-shadow cursor-pointer bg-card group border-input">
       <CardContent className="p-3">
         {/* Header */}
         <div className="flex justify-between items-start mb-3">

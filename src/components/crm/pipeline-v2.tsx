@@ -87,13 +87,17 @@ const stageConfig = {
     title: 'Fechados',
     color: 'border-green-300 bg-green-100 dark:bg-green-900/30 dark:border-green-700',
   },
+  'Pós-Venda': {
+    title: 'Pós-Venda',
+    color: 'border-teal-300 bg-teal-100 dark:bg-teal-900/30 dark:border-teal-700',
+  },
 }
 
 // Droppable column component
 function DroppableColumn({ stage, title, count, color, leads, onAddLead, onEditLead }: PipelineColumnProps) {
   return (
     <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
-      <Card className={`min-h-[600px] ${color} border-2`}>
+      <Card className={`min-h-[600px] w-[300px] flex-shrink-0 ${color} border-2`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -399,7 +403,8 @@ export function CRMPipeline() {
         </div>
 
         {/* Pipeline Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto">
+        {/* Pipeline Grid - Flex Layout for better scrolling */}
+        <div className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[calc(100vh-200px)]">
           {Object.entries(pipelineData).map(([stage, column]) => (
             <DroppableColumn
               key={stage}
