@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) {
-                    throw new Error('Invalid credentials')
+                    throw new Error('EMAIL_PASSWORD_REQUIRED')
                 }
 
                 const user = await db.user.findFirst({
@@ -27,8 +27,12 @@ export const authOptions: NextAuthOptions = {
                     }
                 })
 
-                if (!user || !user.password) {
-                    throw new Error('Invalid credentials')
+                if (!user) {
+                    throw new Error('USER_NOT_FOUND')
+                }
+
+                if (!user.password) {
+                    throw new Error('PASSWORD_NOT_SET')
                 }
 
                 const isCorrectPassword = await bcrypt.compare(
@@ -37,7 +41,7 @@ export const authOptions: NextAuthOptions = {
                 )
 
                 if (!isCorrectPassword) {
-                    throw new Error('Invalid credentials')
+                    throw new Error('INVALID_PASSWORD')
                 }
 
                 return {

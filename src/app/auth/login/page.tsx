@@ -49,8 +49,16 @@ export default function LoginPage() {
           setError('')
         } else if (result.error === 'MFA_INVALID') {
           setError('Código MFA incorreto')
+        } else if (result.error === 'USER_NOT_FOUND' || result.error.includes('USER_NOT_FOUND')) {
+          setError('Usuário não cadastrado. Verifique o email ou crie uma conta.')
+        } else if (result.error === 'INVALID_PASSWORD' || result.error.includes('INVALID_PASSWORD')) {
+          setError('Senha incorreta. Tente novamente.')
+        } else if (result.error === 'PASSWORD_NOT_SET' || result.error.includes('PASSWORD_NOT_SET')) {
+          setError('Este usuário não possui senha configurada. Use outra forma de login.')
+        } else if (result.error === 'EMAIL_PASSWORD_REQUIRED') {
+          setError('Email e senha são obrigatórios')
         } else {
-          setError('Email ou senha incorretos')
+          setError('Erro ao fazer login. Tente novamente.')
         }
       } else if (result?.ok) {
         router.push('/')
