@@ -19,6 +19,14 @@ O erro `Environment variable not found: DATABASE_URL` indica que a aplicação n
 | `NEXTAUTH_SECRET` | Chave secreta para criptografar sessões | `qualquer-string-longa-e-aleatoria` |
 | `NEXTAUTH_URL` | URL do seu site em produção | `https://vo-ai.vercel.app` |
 
+### Troubleshooting (Resolução de Problemas)
+
+#### Erro: `Can't reach database server`
+Se você ver este erro, verifique:
+1.  **Projeto Pausado:** O Supabase pausa projetos do plano gratuito após 1 semana de inatividade. Acesse o [Supabase Dashboard](https://supabase.com/dashboard) e clique em **"Restore Project"** se ele estiver pausado.
+2.  **Senha Incorreta:** Se você redefiniu a senha, lembre-se de atualizar no Vercel.
+3.  **Connection Pooling:** Para Vercel (Serverless), se o erro persistir, use a URL da porta **6543** (Transaction Mode) em vez da 5432.
+
 ### Outras Variáveis Importantes
 
 | Variável | Descrição |
