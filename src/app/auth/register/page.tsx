@@ -53,7 +53,10 @@ export default function RegisterPage() {
             const data = await response.json()
 
             if (!response.ok) {
-                setError(data.error || 'Erro ao criar conta')
+                const errorMessage = data.details
+                    ? `${data.error} (${data.details})`
+                    : (data.error || 'Erro ao criar conta')
+                setError(errorMessage)
             } else {
                 setSuccess(true)
                 setTimeout(() => {

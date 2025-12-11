@@ -87,10 +87,22 @@ export async function POST(request: NextRequest) {
 
     } catch (error: any) {
         console.error('Error creating user:', error)
+
+        // Check for specific Prisma errors
+        if (error.code === 'P2002') {
+            const target = error.meta?.target || 'campo único'
+            return NextResponse.json(
+                { error: `Já existe um registro com este ${target}` },
+                { status: 409 }
+            )
+        }
+
         return NextResponse.json(
-            { error: 'Erro ao criar conta. Tente novamente.' },
+            {
+                error: 'Erro ao criar conta. Tente novamente.',
+                details: error.message // Temporarily expose for debug
+            },
             { status: 500 }
         )
     }
 }
-
