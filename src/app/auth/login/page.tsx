@@ -220,7 +220,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Vo.AI. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} IntelliX.AI. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>
