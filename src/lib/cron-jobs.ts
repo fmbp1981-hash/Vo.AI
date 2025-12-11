@@ -1,6 +1,7 @@
 import { db } from './db'
 import { AutomationEngine, TRIGGERS } from './automation-engine'
 import { sendNotification } from './notifications'
+import { BirthdayService } from './birthday-service'
 
 // Verificar leads sem contato e disparar automações
 export async function checkInactiveLeads() {
@@ -233,6 +234,16 @@ export async function cleanupOldNotifications() {
   }
 }
 
+// Enviar mensagens de aniversário
+export async function sendBirthdayMessages() {
+  try {
+    const result = await BirthdayService.sendBirthdayMessages()
+    console.log(`🎂 Sent ${result.sent} birthday messages, ${result.failed} failed`)
+  } catch (error) {
+    console.error('Error sending birthday messages:', error)
+  }
+}
+
 // Executar todos os jobs
 export async function runScheduledJobs() {
   console.log('🔄 Running scheduled jobs...')
@@ -248,6 +259,15 @@ export async function runScheduledJobs() {
   console.log('✅ All scheduled jobs completed')
 }
 
+// Executar jobs diários (aniversários, etc)
+export async function runDailyJobs() {
+  console.log('📅 Running daily jobs...')
+
+  await sendBirthdayMessages()
+
+  console.log('✅ Daily jobs completed')
+}
+
 // Setup do cron (executar a cada hora)
 export function setupCronJobs() {
   // Executar imediatamente
@@ -258,6 +278,14 @@ export function setupCronJobs() {
 
   // Lembretes a cada 15 minutos
   setInterval(sendTaskReminders, 15 * 60 * 1000)
+
+  // Jobs diários às 9h (verificar a cada hora se é 9h)
+  setInterval(() => {
+    const now = new Date()
+    if (now.getHours() === 9 && now.getMinutes() < 10) {
+      runDailyJobs()
+    }
+  }, 60 * 60 * 1000)
 
   console.log('✅ Cron jobs scheduled')
 }

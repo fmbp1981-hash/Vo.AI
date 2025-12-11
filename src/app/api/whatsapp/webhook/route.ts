@@ -8,6 +8,8 @@ import { humanizeResponse, calculateTypingDelay } from '@/lib/humanizer'
 import { generateLLMCompletion, ChatMessage } from '@/lib/llm'
 import { getLLMConfig, getAgentConfig, getWhatsAppConfig } from '@/lib/settings'
 import { transcribeAudio, analyzeImage, downloadEvolutionMedia } from '@/lib/media'
+import { StageDetectionEngine } from '@/lib/stage-detection-engine'
+import { RecurringClientService } from '@/lib/recurring-client'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -148,16 +150,48 @@ export async function POST(request: NextRequest) {
                 userId: lead.userId || undefined // Might be null initially
             })
         } else {
-            // Update last message
-            await prisma.lead.update({
-                where: { id: lead.id },
-                data: {
-                    ultimaMensagem: messageText,
-                    dataUltimaMensagem: new Date(),
-                    lastContactAt: new Date(),
+            // Check if it's a recurring client (existing lead returning)
+            const tenantId = lead.tenantId || 'default'
+            const recurringCheck = await RecurringClientService.checkRecurringClient(normalizedPhone, tenantId)
+
+            if (recurringCheck.isRecurring && lead.estagio === 'Fechado' || lead.estagio === 'Pós-Venda') {
+                // Process as recurring client - create new record
+                const recurringResult = await RecurringClientService.processRecurringClient(
+                    normalizedPhone,
+                    tenantId,
+                    lead.assignedTo || undefined
+                )
+
+                if (recurringResult.newLead) {
+                    lead = recurringResult.newLead
+                    console.log('[Webhook] Processed recurring client, new lead:', lead.id)
                 }
-            })
+            } else {
+                // Update last message for existing lead
+                await prisma.lead.update({
+                    where: { id: lead.id },
+                    data: {
+                        ultimaMensagem: messageText,
+                        dataUltimaMensagem: new Date(),
+                        lastContactAt: new Date(),
+                    }
+                })
+            }
             console.log('[Webhook] Updated existing lead:', lead.id)
+        }
+
+        // Detect stage change triggers from message
+        const stageDetection = await StageDetectionEngine.processAndUpdateLead(
+            lead.id,
+            messageText,
+            lead.estagio,
+            lead
+        )
+
+        if (stageDetection.detected) {
+            console.log(`[Webhook] Stage change detected: ${lead.estagio} -> ${stageDetection.newStage}`)
+            // Refresh lead data after stage update
+            lead = await prisma.lead.findUnique({ where: { id: lead.id } }) || lead
         }
 
         // Get or create conversation

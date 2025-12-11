@@ -53,7 +53,7 @@ const leadFormSchema = z.object({
   pessoas: z.number().int().positive().default(1),
   observacoes: z.string().optional(),
   canal: z.enum(['WHATSAPP', 'WEBCHAT', 'INSTAGRAM', 'EMAIL', 'TELEFONE', 'PRESENCIAL']).default('WHATSAPP'),
-  estagio: z.enum(['Novo Lead', 'Qualificação', 'Proposta Enviada', 'Negociação', 'Fechado', 'Pós-Venda', 'Perdido']).default('Novo Lead'),
+  estagio: z.enum(['Novo Lead', 'Recorrente', 'Qualificação', 'Gerar Proposta', 'Proposta Enviada', 'Negociação', 'Fechado', 'Pós-Venda', 'Cancelado', 'Não Qualificado']).default('Novo Lead'),
   tipoViagem: z.enum(['nacional', 'internacional']).default('nacional'),
   origem: z.string().optional(),
   empresaTrabalho: z.string().optional(),
@@ -81,28 +81,28 @@ export function LeadFormDialog({
     resolver: zodResolver(leadFormSchema),
     defaultValues: lead
       ? {
-          nome: lead.nome,
-          email: lead.email || '',
-          telefone: lead.telefone || '',
-          destino: lead.destino || '',
-          dataPartida: lead.dataPartida ? new Date(lead.dataPartida) : undefined,
-          dataRetorno: lead.dataRetorno ? new Date(lead.dataRetorno) : undefined,
-          orcamento: lead.orcamento || undefined,
-          pessoas: lead.pessoas || 1,
-          observacoes: lead.observacoes || '',
-          canal: lead.canal || 'WHATSAPP',
-          estagio: lead.estagio || 'Novo Lead',
-          tipoViagem: lead.tipoViagem || 'nacional',
-          origem: lead.origem || '',
-          empresaTrabalho: lead.empresaTrabalho || '',
-          profissao: lead.profissao || '',
-        }
+        nome: lead.nome,
+        email: lead.email || '',
+        telefone: lead.telefone || '',
+        destino: lead.destino || '',
+        dataPartida: lead.dataPartida ? new Date(lead.dataPartida) : undefined,
+        dataRetorno: lead.dataRetorno ? new Date(lead.dataRetorno) : undefined,
+        orcamento: lead.orcamento || undefined,
+        pessoas: lead.pessoas || 1,
+        observacoes: lead.observacoes || '',
+        canal: lead.canal || 'WHATSAPP',
+        estagio: lead.estagio || 'Novo Lead',
+        tipoViagem: lead.tipoViagem || 'nacional',
+        origem: lead.origem || '',
+        empresaTrabalho: lead.empresaTrabalho || '',
+        profissao: lead.profissao || '',
+      }
       : {
-          pessoas: 1,
-          canal: 'WHATSAPP',
-          estagio: 'Novo Lead',
-          tipoViagem: 'nacional',
-        },
+        pessoas: 1,
+        canal: 'WHATSAPP',
+        estagio: 'Novo Lead',
+        tipoViagem: 'nacional',
+      },
   })
 
   const onSubmit = async (data: LeadFormValues) => {
@@ -170,7 +170,7 @@ export function LeadFormDialog({
               <FormField
                 control={form.control}
                 name="email"
-                render={({ field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>E-mail</FormLabel>
                     <FormControl>
@@ -376,12 +376,15 @@ export function LeadFormDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Novo Lead">Novo Lead</SelectItem>
+                        <SelectItem value="Recorrente">Recorrente</SelectItem>
                         <SelectItem value="Qualificação">Qualificação</SelectItem>
+                        <SelectItem value="Gerar Proposta">Gerar Proposta</SelectItem>
                         <SelectItem value="Proposta Enviada">Proposta Enviada</SelectItem>
                         <SelectItem value="Negociação">Negociação</SelectItem>
                         <SelectItem value="Fechado">Fechado</SelectItem>
                         <SelectItem value="Pós-Venda">Pós-Venda</SelectItem>
-                        <SelectItem value="Perdido">Perdido</SelectItem>
+                        <SelectItem value="Cancelado">Cancelado</SelectItem>
+                        <SelectItem value="Não Qualificado">Não Qualificado</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

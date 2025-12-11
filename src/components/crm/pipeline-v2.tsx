@@ -74,15 +74,25 @@ const stageConfig = {
     color: 'border-l-4 border-l-blue-500 bg-card',
     headerColor: 'text-blue-400',
   },
+  'Recorrente': {
+    title: 'Recorrentes',
+    color: 'border-l-4 border-l-teal-500 bg-card',
+    headerColor: 'text-teal-400',
+  },
   'Qualificação': {
     title: 'Qualificação',
     color: 'border-l-4 border-l-amber-500 bg-card',
     headerColor: 'text-amber-400',
   },
-  'Proposta': {
-    title: 'Proposta',
-    color: 'border-l-4 border-l-orange-500 bg-card',
-    headerColor: 'text-orange-400',
+  'Gerar Proposta': {
+    title: 'Gerar Proposta',
+    color: 'border-l-4 border-l-indigo-500 bg-card',
+    headerColor: 'text-indigo-400',
+  },
+  'Proposta Enviada': {
+    title: 'Proposta Enviada',
+    color: 'border-l-4 border-l-sky-500 bg-card',
+    headerColor: 'text-sky-400',
   },
   'Negociação': {
     title: 'Negociação',
@@ -98,6 +108,16 @@ const stageConfig = {
     title: 'Pós-Venda',
     color: 'border-l-4 border-l-cyan-500 bg-card',
     headerColor: 'text-cyan-400',
+  },
+  'Cancelado': {
+    title: 'Cancelados',
+    color: 'border-l-4 border-l-red-500 bg-card',
+    headerColor: 'text-red-400',
+  },
+  'Não Qualificado': {
+    title: 'Não Qualificados',
+    color: 'border-l-4 border-l-gray-500 bg-card',
+    headerColor: 'text-gray-400',
   },
 }
 
