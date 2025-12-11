@@ -168,6 +168,9 @@ export function Sidebar() {
       {/* IntelliX.AI Footer */}
       <div className="flex-shrink-0 p-4 border-t border-sidebar-border">
         <div className="flex flex-col items-center gap-2">
+          <div className="text-xs text-muted-foreground">
+            Desenvolvido por
+          </div>
           <Image
             src="/intellix-logo.png"
             alt="IntelliX.AI"
@@ -175,9 +178,6 @@ export function Sidebar() {
             height={40}
             className="opacity-80"
           />
-          <div className="text-xs text-muted-foreground">
-            Desenvolvido por <span className="font-semibold"><span className="text-secondary">IntelliX</span><span className="text-primary">.AI</span></span>
-          </div>
         </div>
       </div>
     </div>
