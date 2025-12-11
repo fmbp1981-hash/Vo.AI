@@ -149,3 +149,4 @@ temp/
 /playwright-report/
 /playwright/.cache/
 /e2e/.env.test
+.env*.local
