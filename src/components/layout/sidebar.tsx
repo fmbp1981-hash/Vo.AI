@@ -89,8 +89,8 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 px-4 pb-4 space-y-1">
+      {/* Main Navigation - Scrollable area */}
+      <nav className="flex-1 px-4 pb-4 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href
           return (
@@ -135,7 +135,7 @@ export function Sidebar() {
       </nav>
 
       {/* User Info */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="flex-shrink-0 p-4 border-t border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl flex items-center justify-center shadow-lg shadow-secondary/20">
             <span className="text-secondary-foreground text-sm font-bold">
@@ -164,7 +164,7 @@ export function Sidebar() {
       </div>
 
       {/* IntelliX.AI Footer */}
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="flex-shrink-0 p-4 border-t border-sidebar-border">
         <div className="flex flex-col items-center gap-2">
           <Image
             src="/intellix-logo.png"
