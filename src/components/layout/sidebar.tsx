@@ -174,7 +174,7 @@ export function Sidebar() {
             className="opacity-80"
           />
           <div className="text-xs text-muted-foreground">
-            Desenvolvido por <span className="font-semibold"><span className="text-secondary">Intelli</span><span className="text-primary">X.AI</span></span>
+            Desenvolvido por <span className="font-semibold"><span className="text-secondary">IntelliX</span><span className="text-primary">.AI</span></span>
           </div>
         </div>
       </div>
