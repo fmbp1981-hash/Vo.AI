@@ -7,7 +7,7 @@ import { CRMPipeline } from '@/components/crm/pipeline-v2'
 
 export default function CRMPage() {
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0">
         <Sidebar />

@@ -16,15 +16,11 @@ import {
   MoreHorizontal,
   Phone,
   MessageSquare,
-  FileText,
   Calendar,
-  Star,
   Clock,
   MapPin,
   DollarSign,
   Users,
-  Send,
-  Eye
 } from 'lucide-react'
 
 interface LeadCardProps {
@@ -51,24 +47,29 @@ interface LeadCardProps {
   onEdit?: () => void
 }
 
-const canalColors = {
-  'WhatsApp': 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-100 dark:border-green-800',
-  'Instagram': 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/50 dark:text-pink-100 dark:border-pink-800',
-  'Email': 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/50 dark:text-blue-100 dark:border-blue-800',
-  'Site': 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/50 dark:text-purple-100 dark:border-purple-800',
+// Clean, minimal channel styling
+const canalColors: Record<string, string> = {
+  'WhatsApp': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Instagram': 'bg-pink-500/10 text-pink-400 border-pink-500/20',
+  'Email': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  'Site': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
 }
-
-const CanalIcon = ({ className }: { className?: string }) => <MessageSquare className={className} />
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('pt-BR')
+  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return 'bg-green-500'
-  if (score >= 50) return 'bg-yellow-500'
+  if (score >= 80) return 'bg-emerald-500'
+  if (score >= 50) return 'bg-amber-500'
   return 'bg-red-500'
+}
+
+function getScoreTextColor(score: number) {
+  if (score >= 80) return 'text-emerald-400'
+  if (score >= 50) return 'text-amber-400'
+  return 'text-red-400'
 }
 
 export function LeadCard({
@@ -83,166 +84,139 @@ export function LeadCard({
   canal,
   ultimaMensagem,
   dataUltimaMensagem,
-  estagio,
   qualificado,
   recorrente,
   score = 0,
   onCall,
   onWhatsApp,
-  onProposal,
   onView,
   onEdit
 }: LeadCardProps) {
   return (
-    <Card className="hover:shadow-md transition-shadow cursor-pointer bg-card group border-input">
-      <CardContent className="p-3">
-        {/* Header */}
+    <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-card/80 backdrop-blur-sm group border-border/50 hover:border-border">
+      <CardContent className="p-4">
+        {/* Header - Name and Actions */}
         <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-blue-100 text-blue-700">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Avatar className="h-10 w-10 border-2 border-primary/20">
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-semibold text-sm">
                 {nome.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h3 className="font-medium text-sm leading-tight">{nome}</h3>
-              <div className="flex items-center gap-1 mt-1">
-                <Clock className="w-3 h-3 text-gray-400" />
-                <span className="text-xs text-gray-500">
-                  {dataUltimaMensagem ? new Date(dataUltimaMensagem).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Novo'}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-sm text-foreground truncate">{nome}</h3>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Clock className="w-3 h-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {dataUltimaMensagem
+                    ? new Date(dataUltimaMensagem).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                    : 'Novo'}
                 </span>
+                {score > 0 && (
+                  <>
+                    <span className="text-muted-foreground/50">•</span>
+                    <span className={`text-xs font-medium ${getScoreTextColor(score)}`}>{score}%</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreHorizontal className="w-4 h-4 text-gray-500" />
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>Editar Lead</DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-40">
+              <DropdownMenuItem onClick={onEdit}>Editar</DropdownMenuItem>
               <DropdownMenuItem onClick={onView}>Ver Detalhes</DropdownMenuItem>
-              <DropdownMenuItem onClick={onProposal}>Criar Proposta</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">Arquivar</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">Arquivar</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        {/* Contact Info */}
-        <div className="space-y-1 mb-3">
-          {email && (
-            <div className="text-xs text-gray-600 truncate flex items-center gap-1">
-              <span className="opacity-70">📧</span> {email}
+        {/* Trip Info - Clean minimal design */}
+        {destino && (
+          <div className="mb-3 p-2.5 rounded-lg bg-muted/30 border border-border/30">
+            <div className="flex items-center gap-2 mb-1.5">
+              <MapPin className="w-3.5 h-3.5 text-primary" />
+              <span className="text-sm font-medium text-foreground truncate">{destino}</span>
             </div>
-          )}
-          {telefone && (
-            <div className="text-xs text-gray-600 truncate flex items-center gap-1">
-              <Phone className="w-3 h-3 opacity-70" /> {telefone}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {(dataPartida || dataRetorno) && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>{formatDate(dataPartida)}{dataRetorno ? ` → ${formatDate(dataRetorno)}` : ''}</span>
+                </div>
+              )}
+              {pessoas && (
+                <div className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  <span>{pessoas}</span>
+                </div>
+              )}
+              {orcamento && (
+                <div className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" />
+                  <span>{orcamento}</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Trip Info */}
-        <div className="space-y-2 mb-3 bg-gray-50 p-2 rounded-md">
-          {destino && (
-            <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-              <MapPin className="w-4 h-4 text-blue-500" />
-              <span className="truncate">{destino}</span>
-            </div>
-          )}
-
-          {(dataPartida || dataRetorno) && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Calendar className="w-4 h-4 opacity-70" />
-              <span className="text-xs">
-                {formatDate(dataPartida)} {dataRetorno ? `→ ${formatDate(dataRetorno)}` : ''}
-              </span>
-            </div>
-          )}
-
-          {orcamento && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <DollarSign className="w-4 h-4 opacity-70" />
-              <span>{orcamento}</span>
-            </div>
-          )}
-
-          {pessoas && (
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Users className="w-4 h-4 opacity-70" />
-              <span>{pessoas} pessoas</span>
-            </div>
-          )}
-        </div>
-
-        {/* Status Badges */}
-        <div className="flex flex-wrap gap-1 mb-3">
-          {canal && (
-            <Badge variant="outline" className={`text-xs ${canalColors[canal as keyof typeof canalColors] || 'bg-gray-100'}`}>
-              <CanalIcon className="w-3 h-3 mr-1" />
-              {canal}
-            </Badge>
-          )}
-
-          {qualificado && (
-            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-              ✓ Qualificado
-            </Badge>
-          )}
-
-          {recorrente && (
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-              ↻ Recorrente
-            </Badge>
-          )}
-        </div>
-
-        {/* Last Interaction */}
-        {ultimaMensagem && (
-          <div className="mb-3 p-2 bg-yellow-50 border border-yellow-100 rounded text-xs text-gray-600">
-            <div className="font-medium mb-1 text-yellow-800">Última mensagem:</div>
-            <div className="line-clamp-2 italic">"{ultimaMensagem}"</div>
           </div>
         )}
 
-        {/* Score Bar */}
+        {/* Status Badges - Minimal style */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {canal && (
+            <Badge variant="outline" className={`text-[10px] px-2 py-0.5 font-medium ${canalColors[canal] || 'bg-muted/50'}`}>
+              {canal}
+            </Badge>
+          )}
+          {qualificado && (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+              Qualificado
+            </Badge>
+          )}
+          {recorrente && (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-medium bg-blue-500/10 text-blue-400 border-blue-500/20">
+              Recorrente
+            </Badge>
+          )}
+        </div>
+
+        {/* Score Progress Bar - Subtle */}
         {score > 0 && (
           <div className="mb-3">
-            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-              <span>Score</span>
-              <span>{score}%</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
+            <div className="w-full bg-muted/50 rounded-full h-1">
               <div
-                className={`h-1.5 rounded-full ${getScoreColor(score)}`}
+                className={`h-1 rounded-full transition-all duration-300 ${getScoreColor(score)}`}
                 style={{ width: `${score}%` }}
               />
             </div>
           </div>
         )}
 
-        {/* Quick Actions */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        {/* Quick Actions - Clean buttons */}
+        <div className="flex gap-2 pt-2 border-t border-border/30">
           <Button
             variant="ghost"
             size="sm"
-            className="flex-1 h-8 text-xs hover:bg-blue-50 hover:text-blue-600"
+            className="flex-1 h-8 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5"
             onClick={(e) => { e.stopPropagation(); onCall?.() }}
           >
-            <Phone className="w-3 h-3 mr-1" />
+            <Phone className="w-3.5 h-3.5 mr-1.5" />
             Ligar
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="flex-1 h-8 text-xs hover:bg-green-50 hover:text-green-600"
+            className="flex-1 h-8 text-xs text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/5"
             onClick={(e) => { e.stopPropagation(); onWhatsApp?.() }}
           >
-            <MessageSquare className="w-3 h-3 mr-1" />
-            Whats
+            <MessageSquare className="w-3.5 h-3.5 mr-1.5" />
+            WhatsApp
           </Button>
         </div>
       </CardContent>

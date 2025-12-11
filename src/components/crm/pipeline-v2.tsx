@@ -48,6 +48,7 @@ interface Lead {
 interface PipelineStage {
   title: string
   color: string
+  headerColor: string
   leads: Lead[]
 }
 
@@ -60,49 +61,56 @@ interface PipelineColumnProps {
   stage: string
   count: number
   color: string
+  headerColor: string
   leads: Lead[]
   onAddLead?: () => void
   onEditLead?: (lead: Lead) => void
 }
 
-// Pipeline configuration
+// Pipeline configuration - Clean, elegant and professional design
 const stageConfig = {
   'Novo Lead': {
     title: 'Novos Leads',
-    color: 'border-blue-300 bg-blue-100 dark:bg-blue-900/30 dark:border-blue-700',
+    color: 'border-l-4 border-l-blue-500 bg-card',
+    headerColor: 'text-blue-400',
   },
   'Qualificação': {
     title: 'Qualificação',
-    color: 'border-yellow-300 bg-yellow-100 dark:bg-yellow-900/30 dark:border-yellow-700',
+    color: 'border-l-4 border-l-amber-500 bg-card',
+    headerColor: 'text-amber-400',
   },
   'Proposta': {
     title: 'Proposta',
-    color: 'border-orange-300 bg-orange-100 dark:bg-orange-900/30 dark:border-orange-700',
+    color: 'border-l-4 border-l-orange-500 bg-card',
+    headerColor: 'text-orange-400',
   },
   'Negociação': {
     title: 'Negociação',
-    color: 'border-purple-300 bg-purple-100 dark:bg-purple-900/30 dark:border-purple-700',
+    color: 'border-l-4 border-l-purple-500 bg-card',
+    headerColor: 'text-purple-400',
   },
   'Fechado': {
     title: 'Fechados',
-    color: 'border-green-300 bg-green-100 dark:bg-green-900/30 dark:border-green-700',
+    color: 'border-l-4 border-l-emerald-500 bg-card',
+    headerColor: 'text-emerald-400',
   },
   'Pós-Venda': {
     title: 'Pós-Venda',
-    color: 'border-teal-300 bg-teal-100 dark:bg-teal-900/30 dark:border-teal-700',
+    color: 'border-l-4 border-l-cyan-500 bg-card',
+    headerColor: 'text-cyan-400',
   },
 }
 
-// Droppable column component
-function DroppableColumn({ stage, title, count, color, leads, onAddLead, onEditLead }: PipelineColumnProps) {
+// Droppable column component - Clean, elegant design
+function DroppableColumn({ stage, title, count, color, headerColor, leads, onAddLead, onEditLead }: PipelineColumnProps) {
   return (
     <SortableContext items={leads.map(l => l.id)} strategy={verticalListSortingStrategy}>
-      <Card className={`min-h-[600px] w-[300px] flex-shrink-0 ${color} border-2`}>
-        <CardHeader className="pb-3">
+      <Card className={`min-h-[600px] w-[300px] flex-shrink-0 ${color} border border-border/50 rounded-lg shadow-sm`}>
+        <CardHeader className="pb-3 border-b border-border/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium">{title}</CardTitle>
-              <Badge variant="secondary" className="text-xs">
+              <CardTitle className={`text-sm font-semibold ${headerColor}`}>{title}</CardTitle>
+              <Badge variant="outline" className="text-xs font-medium bg-muted/50">
                 {count}
               </Badge>
             </div>
@@ -110,18 +118,18 @@ function DroppableColumn({ stage, title, count, color, leads, onAddLead, onEditL
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-7 w-7 p-0 opacity-70 hover:opacity-100 transition-opacity"
                 onClick={onAddLead}
               >
                 <Plus className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-70 hover:opacity-100 transition-opacity">
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 p-3">
           <AnimatePresence mode="popLayout">
             {leads.map((lead) => (
               <DraggableLeadCard
@@ -133,10 +141,12 @@ function DroppableColumn({ stage, title, count, color, leads, onAddLead, onEditL
           </AnimatePresence>
 
           {leads.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-sm text-muted-foreground mb-2">Nenhum lead nesta coluna</p>
-              <Button variant="outline" size="sm" onClick={onAddLead}>
-                <Plus className="w-4 h-4 mr-2" />
+            <div className="text-center py-12">
+              <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                <Plus className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">Nenhum lead</p>
+              <Button variant="outline" size="sm" className="text-xs" onClick={onAddLead}>
                 Adicionar Lead
               </Button>
             </div>
@@ -209,6 +219,7 @@ export function CRMPipeline() {
       initial[stage] = {
         title: config.title,
         color: config.color,
+        headerColor: config.headerColor,
         leads: []
       }
     })
@@ -244,6 +255,7 @@ export function CRMPipeline() {
         grouped[stage] = {
           title: config.title,
           color: config.color,
+          headerColor: config.headerColor,
           leads: leads.filter((l: Lead) => l.estagio === stage)
         }
       })
@@ -402,8 +414,7 @@ export function CRMPipeline() {
           </Button>
         </div>
 
-        {/* Pipeline Grid */}
-        {/* Pipeline Grid - Flex Layout for better scrolling */}
+        {/* Pipeline Grid - Clean flex layout */}
         <div className="flex gap-4 overflow-x-auto pb-4 items-start min-h-[calc(100vh-200px)]">
           {Object.entries(pipelineData).map(([stage, column]) => (
             <DroppableColumn
@@ -412,6 +423,7 @@ export function CRMPipeline() {
               title={column.title}
               count={column.leads.length}
               color={column.color}
+              headerColor={column.headerColor}
               leads={column.leads}
               onAddLead={handleNewLead}
               onEditLead={handleEditLead}
