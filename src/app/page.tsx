@@ -8,6 +8,7 @@ import { ConversionFunnel } from '@/components/dashboard/conversion-funnel'
 import { RecentActivities } from '@/components/dashboard/recent-activities'
 import { TopConsultants } from '@/components/dashboard/top-consultants'
 import { QuickActions } from '@/components/dashboard/quick-actions'
+import { OpportunitiesWidget } from '@/components/dashboard/opportunities-widget'
 
 export default function Home() {
   return (
@@ -31,6 +32,9 @@ export default function Home() {
               <p className="text-muted-foreground">Visão geral do desempenho e atividades recentes</p>
             </div>
 
+            {/* Opportunities Widget - Top of Page */}
+            <OpportunitiesWidget />
+
             {/* KPI Metrics */}
             <DashboardMetrics />
 
@@ -38,7 +42,7 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Conversion Funnel */}
               <ConversionFunnel />
-              
+
               {/* Top Consultants */}
               <TopConsultants />
             </div>
@@ -47,7 +51,7 @@ export default function Home() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Activities */}
               <RecentActivities />
-              
+
               {/* Quick Actions */}
               <QuickActions />
             </div>
