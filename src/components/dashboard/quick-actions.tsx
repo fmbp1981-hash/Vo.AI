@@ -84,13 +84,13 @@ export function QuickActions() {
               <Button
                 key={action.id}
                 variant="outline"
-                className={`h-auto p-4 flex flex-col items-center gap-2 ${action.colorClasses}`}
+                className={`h-auto p-4 flex flex-col items-center gap-2 whitespace-normal ${action.colorClasses}`}
                 onClick={() => handleAction(action.href)}
               >
                 <Icon className="w-6 h-6" />
-                <div className="text-center">
-                  <p className="font-medium text-sm">{action.title}</p>
-                  <p className="text-xs opacity-75 mt-1">{action.description}</p>
+                <div className="text-center max-w-full break-words">
+                  <p className="font-medium text-sm leading-snug line-clamp-2">{action.title}</p>
+                  <p className="text-xs opacity-75 mt-1 leading-snug line-clamp-2">{action.description}</p>
                 </div>
               </Button>
             )
