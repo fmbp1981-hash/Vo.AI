@@ -106,24 +106,21 @@ export default function LeadsPage() {
     const itemsPerPage = 20
 
     useEffect(() => {
-        if (status === 'loading') return
-        if (!session) {
-            router.push('/auth/login')
-            return
-        }
+        if (status !== 'authenticated') return
         fetchLeads()
-    }, [session, status])
+    }, [status])
 
     const fetchLeads = async () => {
         setLoading(true)
         try {
             const response = await fetch('/api/leads')
-            const data = await response.json()
-            if (data.leads) {
-                setLeads(data.leads)
-            }
+            if (!response.ok) throw new Error('Failed to fetch leads')
+            const result = await response.json()
+            const items = result?.data?.items
+            setLeads(Array.isArray(items) ? items : [])
         } catch (error) {
             console.error('Error fetching leads:', error)
+            setLeads([])
         } finally {
             setLoading(false)
         }

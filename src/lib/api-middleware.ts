@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { errorResponse } from './api-response'
 
 /**
@@ -9,7 +10,7 @@ export async function requireAuth(
   request: NextRequest,
   handler: (req: NextRequest, session: any) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
 
   if (!session) {
     return errorResponse('Não autenticado', 401)
@@ -26,7 +27,7 @@ export async function requireRole(
   roles: string[],
   handler: (req: NextRequest, session: any) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
 
   if (!session) {
     return errorResponse('Não autenticado', 401)

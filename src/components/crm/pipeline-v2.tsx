@@ -267,7 +267,7 @@ export function CRMPipeline() {
       if (!response.ok) throw new Error('Failed to fetch leads')
 
       const result = await response.json()
-      const leads = result.data?.leads || []
+      const leads = result.data?.items || []
 
       // Group leads by stage
       const grouped: PipelineData = {}

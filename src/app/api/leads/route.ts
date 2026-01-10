@@ -8,10 +8,11 @@ import {
   validatePagination,
   calculatePagination
 } from '@/lib/api-response'
-import { withErrorHandler, withRateLimit } from '@/lib/api-middleware'
+import { requireAuth, withErrorHandler, withRateLimit } from '@/lib/api-middleware'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
-  return withRateLimit(request, 200, 60000, async (req) => {
+  return requireAuth(request, async (_req, session) => {
+    return withRateLimit(request, 200, 60000, async (req) => {
     const { searchParams } = new URL(req.url)
     const estagio = searchParams.get('estagio')
     const assignedTo = searchParams.get('assignedTo')
@@ -24,7 +25,9 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     const { skip, take } = calculatePagination(validPage, validPerPage)
 
     // Construir filtros
-    const whereClause: any = {}
+    const whereClause: any = {
+      tenantId: (session.user as any)?.tenantId,
+    }
     
     if (estagio) {
       whereClause.estagio = estagio
@@ -67,29 +70,8 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
       db.lead.count({ where: whereClause })
     ])
 
-    // Agrupar por estágio para visualização de pipeline
-    const pipeline = leads.reduce((acc, lead) => {
-      const stage = lead.estagio || 'Novo Lead'
-      if (!acc[stage]) {
-        acc[stage] = []
-      }
-      acc[stage].push(lead)
-      return acc
-    }, {} as Record<string, typeof leads>)
-
-    return paginatedResponse(
-      leads.map(lead => ({
-        ...lead,
-        pipeline,
-        stats: {
-          total,
-          byStage: Object.keys(pipeline).length
-        }
-      })),
-      total,
-      validPage,
-      validPerPage
-    )
+    return paginatedResponse(leads, total, validPage, validPerPage)
+    })
   })
 })
 
