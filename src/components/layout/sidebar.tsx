@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -43,6 +43,32 @@ const secondaryNavigation = [
 export function Sidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [chatAttentionCount, setChatAttentionCount] = useState<number>(0)
+
+  useEffect(() => {
+    if (!session?.user) return
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/conversations/summary')
+        if (!res.ok) return
+        const json = await res.json()
+        const attention = Number(json?.data?.attention ?? 0)
+        if (!cancelled) setChatAttentionCount(Number.isFinite(attention) ? attention : 0)
+      } catch {
+        if (!cancelled) setChatAttentionCount(0)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user])
+
+  const chatBadge = useMemo(() => {
+    return chatAttentionCount > 0 ? String(chatAttentionCount > 99 ? '99+' : chatAttentionCount) : null
+  }, [chatAttentionCount])
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/auth/login' })
@@ -113,9 +139,9 @@ export function Sidebar() {
                 <item.icon className="w-4 h-4" />
                 {item.name}
               </div>
-              {item.badge && (
+              {(item.href === '/chat' ? chatBadge : item.badge) && (
                 <Badge variant="secondary" className="bg-destructive/10 text-destructive text-xs border-destructive/20">
-                  {item.badge}
+                  {item.href === '/chat' ? chatBadge : item.badge}
                 </Badge>
               )}
             </Link>
