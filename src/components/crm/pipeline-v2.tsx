@@ -218,19 +218,6 @@ function DraggableLeadCard({ lead, onEdit }: { lead: Lead, onEdit?: () => void }
   )
 }
 
-// Add onEdit to DraggableLeadCard props and pass it down
-// But DraggableLeadCard is inside DroppableColumn which is inside CRMPipeline
-// We need to pass handleEditLead down.
-
-// Let's modify DroppableColumn and DraggableLeadCard interfaces first.
-// Actually, I can just modify the usage in CRMPipeline to pass the function down.
-// But wait, DroppableColumn takes `leads` and renders them.
-// I need to pass `onEditLead` to DroppableColumn.
-
-// Let's fix the interfaces first in a separate replacement chunk if needed, or just do it here.
-// I'll update the interfaces and the component definitions.
-
-
 export function CRMPipeline() {
   const [pipelineData, setPipelineData] = useState<PipelineData>(() => {
     // Initialize with empty stages
@@ -264,6 +251,9 @@ export function CRMPipeline() {
     setLoading(true)
     try {
       const response = await fetch('/api/leads')
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED')
+      }
       if (!response.ok) throw new Error('Failed to fetch leads')
 
       const result = await response.json()
@@ -283,9 +273,17 @@ export function CRMPipeline() {
       setPipelineData(grouped)
     } catch (error) {
       console.error('Error fetching leads:', error)
+      if (error instanceof Error && error.message === 'UNAUTHORIZED') {
+        toast({
+          title: 'Sessão expirada',
+          description: 'Faça login novamente para continuar.',
+          variant: 'destructive',
+        })
+        return
+      }
       toast({
         title: 'Erro ao carregar leads',
-        description: 'Não foi possível carregar os leads. Usando dados de exemplo.',
+        description: 'Não foi possível carregar os leads. Tente novamente.',
         variant: 'destructive',
       })
     } finally {
@@ -296,7 +294,7 @@ export function CRMPipeline() {
   // Fetch leads from API
   useEffect(() => {
     fetchLeads()
-  }, [toast])
+  }, [])
 
   const handleNewLead = () => {
     setSelectedLead(undefined)
