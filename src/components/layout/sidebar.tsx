@@ -28,7 +28,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'CRM Pipeline', href: '/crm', icon: Users },
   { name: 'Tabela de Leads', href: '/leads', icon: FileText },
-  { name: 'Chat Hub', href: '/chat', icon: MessageSquare, badge: '3' },
+  { name: 'Chat Hub', href: '/chat', icon: MessageSquare },
   { name: 'Inbox', href: '/inbox', icon: Inbox },
   { name: 'Roteiros', href: '/roteiros', icon: Map },
   { name: 'Propostas', href: '/propostas', icon: FileText },
