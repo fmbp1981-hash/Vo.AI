@@ -26,6 +26,38 @@ async function main() {
   })
   console.log('✅ Tenant ensured:', tenant.slug)
 
+  // 2. Ensure platform admin user (default)
+  // This is the system admin with access to Settings/Integrations.
+  const bcrypt = (await import('bcryptjs')).default
+  const adminEmail = process.env.ADMIN_EMAIL || 'fmbp1981@gmail.com'
+  const adminName = process.env.ADMIN_NAME || 'Admin'
+  const adminPasswordPlain = process.env.ADMIN_PASSWORD || 'Admin@123'
+  const adminPasswordHash = await bcrypt.hash(adminPasswordPlain, 12)
+
+  await prisma.user.upsert({
+    where: {
+      tenantId_email: {
+        tenantId: tenant.id,
+        email: adminEmail,
+      },
+    },
+    update: {
+      name: adminName,
+      role: 'admin',
+      isActive: true,
+      password: adminPasswordHash,
+    },
+    create: {
+      tenantId: tenant.id,
+      email: adminEmail,
+      name: adminName,
+      password: adminPasswordHash,
+      role: 'admin',
+      isActive: true,
+    },
+  })
+  console.log(`✅ Admin user ensured: ${adminEmail}`)
+
   if (!shouldSeedE2EUsers && !shouldSeedSampleData) {
     console.log('ℹ️ Seed running in clean mode (no users, no sample data).')
     console.log('🎉 Seed completed successfully!')
@@ -34,8 +66,6 @@ async function main() {
 
   // Optional seeds (disabled by default)
   if (shouldSeedE2EUsers) {
-    const bcrypt = (await import('bcryptjs')).default
-
     const testPasswordHash = await bcrypt.hash('Test@123456', 10)
 
     await prisma.user.upsert({

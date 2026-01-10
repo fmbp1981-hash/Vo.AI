@@ -8,11 +8,22 @@ export default withAuth(
       return NextResponse.next()
     }
 
+    const token = (req as any).nextauth?.token ?? (req as any).auth?.token ?? (req as any).auth
+
     // Check if user is authenticated
-    if (!req.auth) {
+    if (!token) {
       const loginUrl = new URL('/auth/login', req.url)
       loginUrl.searchParams.set('callbackUrl', req.nextUrl.pathname)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Admin-only areas
+    const pathname = req.nextUrl.pathname
+    const isAdminOnlyRoute = pathname === '/settings' || pathname.startsWith('/settings/')
+    const role = (token as any)?.role
+
+    if (isAdminOnlyRoute && role !== 'admin') {
+      return NextResponse.redirect(new URL('/', req.url))
     }
 
     return NextResponse.next()
