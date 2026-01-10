@@ -6,15 +6,24 @@ import { Header } from '@/components/layout/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Shield, Lock, Smartphone, AlertTriangle } from 'lucide-react'
 import { MFASetupWizard } from '@/components/auth/mfa-setup-wizard'
 import { toast } from 'sonner'
 import { useSession } from 'next-auth/react'
 
 export default function SecuritySettingsPage() {
-    const { data: session, update } = useSession()
+    const { data: session } = useSession()
     const [showMFAWizard, setShowMFAWizard] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    const [showChangePassword, setShowChangePassword] = useState(false)
+    const [currentPassword, setCurrentPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [passwordLoading, setPasswordLoading] = useState(false)
 
     // This is a simplified check. In a real app, you'd fetch the MFA status from an API
     // because the session might be stale or not contain the mfaEnabled flag if you didn't add it to the session type
@@ -55,6 +64,47 @@ export default function SecuritySettingsPage() {
         }
     }
 
+    const handleChangePassword = async () => {
+        if (!currentPassword) {
+            toast.error('Informe sua senha atual')
+            return
+        }
+        if (newPassword.length < 8) {
+            toast.error('A nova senha deve ter pelo menos 8 caracteres')
+            return
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error('As senhas não coincidem')
+            return
+        }
+
+        setPasswordLoading(true)
+        try {
+            const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword }),
+            })
+
+            const result = await response.json().catch(() => ({}))
+            if (!response.ok) {
+                toast.error(result?.error || 'Erro ao alterar senha')
+                return
+            }
+
+            toast.success('Senha alterada com sucesso')
+            setShowChangePassword(false)
+            setCurrentPassword('')
+            setNewPassword('')
+            setConfirmPassword('')
+        } catch (error) {
+            console.error(error)
+            toast.error('Erro de conexão')
+        } finally {
+            setPasswordLoading(false)
+        }
+    }
+
     return (
         <div className="flex h-screen bg-background">
             <aside className="w-64 flex-shrink-0 border-r border-border">
@@ -90,10 +140,70 @@ export default function SecuritySettingsPage() {
                                         <p className="font-medium">Senha atual</p>
                                         <p className="text-sm text-muted-foreground">********</p>
                                     </div>
-                                    <Button variant="outline">Alterar Senha</Button>
+                                    <Button variant="outline" onClick={() => setShowChangePassword(true)}>
+                                        Alterar Senha
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <Dialog open={showChangePassword} onOpenChange={setShowChangePassword}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Alterar senha</DialogTitle>
+                                    <DialogDescription>
+                                        Defina uma nova senha para sua conta.
+                                    </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="currentPassword">Senha atual</Label>
+                                        <Input
+                                            id="currentPassword"
+                                            type="password"
+                                            value={currentPassword}
+                                            onChange={(e) => setCurrentPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="newPassword">Nova senha</Label>
+                                        <Input
+                                            id="newPassword"
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                        />
+                                        <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                                        <Input
+                                            id="confirmPassword"
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            placeholder="••••••••"
+                                        />
+                                    </div>
+                                </div>
+
+                                <DialogFooter>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setShowChangePassword(false)}
+                                        disabled={passwordLoading}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button onClick={handleChangePassword} disabled={passwordLoading}>
+                                        {passwordLoading ? 'Salvando...' : 'Salvar'}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
 
                         {/* MFA Section */}
                         <Card>
@@ -139,7 +249,12 @@ export default function SecuritySettingsPage() {
                                         </div>
 
                                         {isMFAEnabled ? (
-                                            <Button variant="destructive" variant="outline" onClick={handleDisableMFA} disabled={loading}>
+                                            <Button
+                                                variant="outline"
+                                                className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                                                onClick={handleDisableMFA}
+                                                disabled={loading}
+                                            >
                                                 Desativar MFA
                                             </Button>
                                         ) : (

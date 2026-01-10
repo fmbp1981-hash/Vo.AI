@@ -55,6 +55,7 @@ model User {
   proposals     Proposal[]
   tasks         Task[]
   notifications Notification[]
+  passwordResetTokens PasswordResetToken[]
   
   @@unique([tenantId, email])
   @@map("users")
@@ -310,4 +311,19 @@ model FollowUp {
   @@index([leadId])
   @@index([scheduledFor])
   @@index([status])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+  @@index([userId])
+  @@index([expiresAt])
 }
