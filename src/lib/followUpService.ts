@@ -301,4 +301,5 @@ export class FollowUpService {
   }
 }
 
-export default new FollowUpService();
+const followUpService = new FollowUpService();
+export default followUpService;
