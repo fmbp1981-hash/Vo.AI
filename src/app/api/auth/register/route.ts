@@ -56,13 +56,13 @@ export async function POST(request: NextRequest) {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 12)
 
-        // Create user as admin for their company
+        // Create user as client (agency) by default
         const user = await db.user.create({
             data: {
                 name,
                 email,
                 password: hashedPassword,
-                role: 'admin',
+                role: 'client',
                 tenantId: tenant.id,
             },
             select: {

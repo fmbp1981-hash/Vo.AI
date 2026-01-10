@@ -25,6 +25,14 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
         }
 
+        // Check if user has admin role
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+            return NextResponse.json(
+                { error: 'Only admins can view integration settings' },
+                { status: 403 }
+            )
+        }
+
         // Parse settings from tenant (stored as JSON)
         let settings = {}
         if (user.tenant.settings) {

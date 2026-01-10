@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { db } from '@/lib/db'
 import axios from 'axios'
 import OpenAI from 'openai'
 
@@ -14,6 +15,22 @@ export async function POST(request: NextRequest) {
 
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const user = await db.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true }
+        })
+
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+            return NextResponse.json(
+                { error: 'Only admins can test integrations' },
+                { status: 403 }
+            )
         }
 
         const { provider, settings } = await request.json()

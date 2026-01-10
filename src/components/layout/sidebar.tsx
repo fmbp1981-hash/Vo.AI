@@ -61,10 +61,13 @@ export function Sidebar() {
     const roleMap: Record<string, string> = {
       admin: 'Administrador',
       manager: 'Gerente',
-      consultant: 'Consultor'
+      consultant: 'Consultor',
+      client: 'Cliente'
     }
     return roleMap[session?.user?.role || 'consultant'] || 'Consultor'
   }
+
+  const isAdmin = session?.user?.role === 'admin'
 
   return (
     <div className="flex flex-col h-full bg-sidebar border-r border-sidebar-border">
@@ -124,7 +127,9 @@ export function Sidebar() {
 
       {/* Secondary Navigation */}
       <nav className="px-4 py-4 space-y-1">
-        {secondaryNavigation.map((item) => (
+        {secondaryNavigation
+          .filter((item) => (item.href.startsWith('/settings/integrations') ? isAdmin : true))
+          .map((item) => (
           <Link
             key={item.name}
             href={item.href}

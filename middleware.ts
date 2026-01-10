@@ -19,7 +19,7 @@ export default withAuth(
 
     // Admin-only areas
     const pathname = req.nextUrl.pathname
-    const isAdminOnlyRoute = pathname === '/settings' || pathname.startsWith('/settings/')
+    const isAdminOnlyRoute = pathname.startsWith('/settings/integrations')
     const role = (token as any)?.role
 
     if (isAdminOnlyRoute && role !== 'admin') {
