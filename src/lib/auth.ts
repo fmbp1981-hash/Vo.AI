@@ -4,6 +4,9 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
+// Tempo de expiração da sessão (30 minutos de inatividade)
+const SESSION_MAX_AGE = 30 * 60 // 30 minutos em segundos
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(db),
     providers: [
@@ -56,7 +59,12 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     session: {
-        strategy: 'jwt'
+        strategy: 'jwt',
+        maxAge: SESSION_MAX_AGE, // Sessão expira após 30 minutos de inatividade
+        updateAge: 5 * 60, // Atualiza a sessão a cada 5 minutos de atividade
+    },
+    jwt: {
+        maxAge: SESSION_MAX_AGE, // Token JWT também expira em 30 minutos
     },
     callbacks: {
         async jwt({ token, user }) {

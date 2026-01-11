@@ -8,11 +8,10 @@ import {
   validatePagination,
   calculatePagination
 } from '@/lib/api-response'
-import { requireAuth, withErrorHandler, withRateLimit } from '@/lib/api-middleware'
+import { requireAuth, withErrorHandler } from '@/lib/api-middleware'
 
 export const GET = withErrorHandler(async (request: NextRequest) => {
-  return requireAuth(request, async (_req, session) => {
-    return withRateLimit(request, 200, 60000, async (req) => {
+  return requireAuth(request, async (req, session) => {
     const { searchParams } = new URL(req.url)
     const estagio = searchParams.get('estagio')
     const assignedTo = searchParams.get('assignedTo')
@@ -24,9 +23,18 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     const { page: validPage, perPage: validPerPage } = validatePagination(page, perPage)
     const { skip, take } = calculatePagination(validPage, validPerPage)
 
+    // Obter tenantId da sessão
+    const tenantId = (session.user as any)?.tenantId
+    
+    // Se não tiver tenantId, retorna lista vazia (usuário pode não ter tenant associado)
+    if (!tenantId) {
+      console.warn('User session missing tenantId:', session.user)
+      return paginatedResponse([], 0, validPage, validPerPage)
+    }
+
     // Construir filtros
     const whereClause: any = {
-      tenantId: (session.user as any)?.tenantId,
+      tenantId,
     }
     
     if (estagio) {
@@ -71,7 +79,6 @@ export const GET = withErrorHandler(async (request: NextRequest) => {
     ])
 
     return paginatedResponse(leads, total, validPage, validPerPage)
-    })
   })
 })
 

@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, getSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Mail, Lock, LogIn, Eye, EyeOff, AlertCircle, Smartphone } from 'lucide-react'
+import { Mail, Lock, LogIn, Eye, EyeOff, AlertCircle, Smartphone, Clock } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -19,16 +19,24 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [sessionExpired, setSessionExpired] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Check if session expired (redirected from timeout)
+    const reason = searchParams.get('reason')
+    if (reason === 'timeout') {
+      setSessionExpired(true)
+    }
+
     // Check if user is already logged in
     getSession().then(session => {
       if (session) {
         router.push('/')
       }
     })
-  }, [router])
+  }, [router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,6 +102,15 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {sessionExpired && (
+                <Alert className="bg-amber-500/10 border-amber-500/50 text-amber-400">
+                  <Clock className="h-4 w-4" />
+                  <AlertDescription>
+                    Sua sessão expirou por inatividade. Por favor, faça login novamente.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />

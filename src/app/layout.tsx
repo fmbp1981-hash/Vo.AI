@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/providers/auth-provider";
+import { SessionTimeoutProvider } from "@/providers/session-timeout-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -44,7 +45,9 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-background text-foreground min-h-screen`}
       >
         <AuthProvider>
-          {children}
+          <SessionTimeoutProvider timeoutMinutes={30} warningMinutes={5}>
+            {children}
+          </SessionTimeoutProvider>
           <Toaster />
         </AuthProvider>
       </body>
