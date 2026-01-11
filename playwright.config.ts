@@ -1,10 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
 
 /**
- * Read environment variables from file.
+ * Read environment variables from .env.test file for E2E tests
  * https://github.com/motdotla/dotenv
  */
-// require('dotenv').config();
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
+
+// Fallback to .env if .env.test doesn't exist
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -81,7 +86,11 @@ export default defineConfig({
     webServer: {
         command: 'npm run dev',
         url: 'http://localhost:3000',
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: true, // Always reuse if server is running
         timeout: 120000,
+        env: {
+            ...process.env,
+            NODE_ENV: 'test',
+        },
     },
 });

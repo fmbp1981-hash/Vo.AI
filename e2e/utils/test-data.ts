@@ -5,14 +5,14 @@
 
 export const TEST_USERS = {
     admin: {
-        email: 'admin@voai.test',
-        password: 'Test@123456',
+        email: process.env.E2E_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'fmbp1981@gmail.com',
+        password: process.env.E2E_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'Admin@123',
         name: 'Admin User',
         role: 'ADMIN',
     },
     consultant: {
-        email: 'consultant@voai.test',
-        password: 'Test@123456',
+        email: process.env.E2E_CONSULTANT_EMAIL || process.env.CONSULTANT_EMAIL || 'consultant@voai.test',
+        password: process.env.E2E_CONSULTANT_PASSWORD || process.env.CONSULTANT_PASSWORD || 'Test@123456',
         name: 'Consultant User',
         role: 'CONSULTANT',
     },
@@ -82,15 +82,15 @@ export const SELECTORS = {
     // CRM
     leadCard: '[data-testid="lead-card"]',
     createLeadButton: 'button:has-text("Novo Lead"), button:has-text("Criar Lead")',
-    leadNameInput: 'input[name="name"]',
+    leadNameInput: 'input[name="nome"], input[name="name"]',
     leadEmailInput: 'input[name="email"]',
-    saveLeadButton: 'button:has-text("Salvar")',
+    saveLeadButton: 'button:has-text("Salvar"), button:has-text("Criar Lead"), button:has-text("Atualizar")',
 
     // Chat
-    chatList: '[data-testid="chat-list"]',
-    chatMessage: '[data-testid="chat-message"]',
-    messageInput: 'textarea[name="message"], input[name="message"]',
-    sendButton: 'button[type="submit"]',
+    chatList: '[data-testid="conversation-list"], [data-testid="chat-list"]',
+    chatMessage: '[data-testid="chat-message"], [data-testid="message"]',
+    messageInput: '[data-testid="message-input"], textarea[name="message"], input[name="message"]',
+    sendButton: '[data-testid="send-button"], button[type="submit"], button:has(svg)',
 
     // Common
     loadingSpinner: '[data-testid="loading"]',

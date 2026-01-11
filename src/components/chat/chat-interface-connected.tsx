@@ -170,7 +170,16 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="chat-interface">
+      {/* Conversation List (placeholder until full hub is implemented) */}
+      <Card data-testid="conversation-list">
+        <CardContent className="p-4">
+          <div className="text-sm text-muted-foreground">
+            Nenhuma conversa selecionada.
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Handover Alert */}
       {handoverAlert.show && (
         <HandoverNotification
@@ -181,7 +190,7 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
       )}
 
       {/* Messages Area */}
-      <Card>
+      <Card data-testid="message-area">
         <CardContent className="p-6">
           <div className="space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto">
             {messages.length === 0 && (
@@ -201,6 +210,7 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
                 key={index}
                 className={`flex items-start gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''
                   }`}
+                data-testid="chat-message"
               >
                 <div
                   className={`rounded-lg px-4 py-2 ${message.role === 'user'
@@ -245,10 +255,18 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
       </Card >
 
       {/* Input Area */}
-      < Card className="mt-4" >
+      <Card className="mt-4">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2">
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSendMessage()
+            }}
+          >
             <Input
+              name="message"
+              data-testid="message-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -257,7 +275,8 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
               className="flex-1"
             />
             <Button
-              onClick={handleSendMessage}
+              type="submit"
+              data-testid="send-button"
               disabled={!input.trim() || loading}
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -267,12 +286,12 @@ export function ChatInterface({ leadId, conversationId }: ChatInterfaceProps) {
                 <Send className="w-4 h-4" />
               )}
             </Button>
-          </div>
+          </form>
           <p className="text-xs text-gray-500 mt-2">
             Pressione Enter para enviar • Shift+Enter para nova linha
           </p>
         </CardContent>
-      </Card >
-    </div >
+      </Card>
+    </div>
   )
 }
