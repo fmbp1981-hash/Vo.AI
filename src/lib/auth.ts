@@ -5,10 +5,14 @@ import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 // Tempo de expiração da sessão (30 minutos de inatividade)
-const SESSION_MAX_AGE = 30 * 60 // 30 minutos em segundos
+const SESSION_MAX_AGE = 7 * 24 * 60 * 60 // 7 dias em segundos
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(db),
+    session: {
+        strategy: 'jwt',
+        maxAge: SESSION_MAX_AGE,
+    },
     providers: [
         CredentialsProvider({
             name: 'credentials',

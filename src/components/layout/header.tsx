@@ -44,8 +44,20 @@ export function Header() {
         {session?.user && (
           <NotificationCenter
             userId={session.user.id || session.user.email || 'guest'}
-            role="consultant"
+            role={session.user.role || 'consultant'}
           />
+        )}
+
+        {/* Perfil do usuário */}
+        {session?.user && (
+          <div className="flex flex-col items-end mr-4">
+            <span className="font-semibold text-sm">
+              {session.user.name || session.user.email}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {session.user.role === 'admin' ? 'Administrador' : 'Consultor'}
+            </span>
+          </div>
         )}
 
         {/* User Menu */}
